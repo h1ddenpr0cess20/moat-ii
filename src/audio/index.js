@@ -1,6 +1,7 @@
 import { NOTE, createAudio } from 'madness-engine/audio';
 import { pickSettings, saveSlot } from 'madness-engine/storage';
 import { hash2 } from '../rng.js';
+import { calendar } from '../sim/calendar.js';
 import { GROUND } from '../config.js';
 import { createMusic } from './music.js';
 
@@ -9,8 +10,8 @@ import { createMusic } from './music.js';
  * ambience of the place the camera is over (wind, the moat, crows by day and
  * owls by night, rain and thunder, crickets, hammers), what comes out of the
  * dark (a howl, a wail, a cackle, a chant, the moaning of the dead), and the
- * score (the engine's band playing the goth: see music.js). Nothing plays
- * until the first click.
+ * score (Moat's lute and recorder, gone strange: see music.js). Nothing
+ * plays until the first click.
  */
 
 const DEFAULTS = Object.freeze({ music: 0.6, sfx: 0.8 });
@@ -81,7 +82,12 @@ export function createSound({ game, scene }) {
 
   /** Are the dead on the road? From the game itself, so a reloaded game in the middle of a warning still hears it. */
   const dread = () => Boolean(game.disasters && game.raidGate && Number.isFinite(game.nextRaid) && game.nextRaid - game.week <= 3);
-  const music = createMusic(audio, { getState: () => ({ threat: dread(), silent: game.gameOver }) });
+  const music = createMusic(audio, {
+    getState: () => ({
+      season: calendar(game.week).season, night: (scene.atmosphere.state.night ?? 0) > 0.5,
+      busy: game.pop.adults + game.pop.children + game.pop.elders > 40, threat: dread(), silent: game.gameOver,
+    }),
+  });
 
   // The browser may suspend the sound (a tab put away, a laptop asleep, a phone call) and only a click or key lets it go on: every one brings it back, not just the first, and so does coming back to the tab.
   const wakeUp = () => { audio.wake(); };
@@ -133,7 +139,7 @@ export function createSound({ game, scene }) {
     setVolume(which, v) { settings[which] = v; audio.setVolume(which, v); slot.write(settings); },
     toggleMute() { return audio.toggleMute(); },
     get muted() { return audio.muted; },
-    /** Which part of the score is playing: 'goth', 'dread' or null. */
+    /** What the score is playing for: 'day', 'night', 'dread' or null. */
     get cue() { return music.cue; },
     update(dt) {
       if (!audio.ctx || !loops) return;

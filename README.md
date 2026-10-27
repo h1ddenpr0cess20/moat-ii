@@ -61,7 +61,7 @@ Take the **Blocks** tool (4), pick **Open ★** for the core, and click to stamp
 * `src/sim/monsters.js`: what walks the streets by night, and All Hallows' Eve; `src/sim/events.js` has the hordes of the dead.
 * `src/render/`: the picture on the engine's `gfx`, `stage`, `view` and `effects`: chunked terrain painted per pixel, a moat of blood, trees (dead ones among them), autotiled roads, corn, pumpkins and apple trees that grow through the year, the engine's building models in Gravemoor's drained tints, jack-o'-lanterns, a graveyard, day/night and season grading in the horror mood, lightning, overcast skies and lying snow.
 * `src/render/cast.js`, `monsters.js`: the lord and the monsters from the engine's cast, baked in a worker (`cast.worker.js`), each scaled to its real size in tiles (a man is 0.4 of a tile, a door 0.45), drawn from a few shared puppets per kind so a horde costs only a few skins a frame.
-* `src/audio/`: sound and a generative lute, chapel organ and heartbeat-drum score in the dark modes, howls, wails, moans and thunder, all Web Audio, no samples.
+* `src/audio/`: the score is the engine's band playing the goth: Whitby's theme (`abbey`: a clean guitar going round, strings and an organ, the goth beat, a theremin over the top), giving way to the horror picture's theme (organ, theremin, a creeping heartbeat) while the dead are on the road. And the sounds: howls, wails, cackles, chants, moans, crows, owls and thunder, all Web Audio, no samples.
 * `src/ui/`: the HUD, tools, panels, realm map and menus, in plain DOM.
 * `test/`: node tests, and `test/bot.js`, a scripted player used for tuning.
 

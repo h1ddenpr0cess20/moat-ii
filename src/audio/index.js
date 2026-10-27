@@ -1,7 +1,6 @@
 import { NOTE, createAudio } from 'madness-engine/audio';
 import { pickSettings, saveSlot } from 'madness-engine/storage';
 import { hash2 } from '../rng.js';
-import { calendar } from '../sim/calendar.js';
 import { GROUND } from '../config.js';
 import { createMusic } from './music.js';
 
@@ -10,7 +9,8 @@ import { createMusic } from './music.js';
  * ambience of the place the camera is over (wind, the moat, crows by day and
  * owls by night, rain and thunder, crickets, hammers), what comes out of the
  * dark (a howl, a wail, a cackle, a chant, the moaning of the dead), and the
- * score. Nothing plays until the first click.
+ * score (the engine's band playing the goth: see music.js). Nothing plays
+ * until the first click.
  */
 
 const DEFAULTS = Object.freeze({ music: 0.6, sfx: 0.8 });
@@ -22,7 +22,6 @@ export function createSound({ game, scene }) {
   const rate = new Map();
   let loops = null;
   let env = { water: 0, forest: 0, building: 0, t: 0 };
-  let threat = 0;
 
   const ok = (name, gap = 0.08) => {
     const now = performance.now() / 1000;
@@ -80,12 +79,9 @@ export function createSound({ game, scene }) {
     ctx.addEventListener('statechange', () => { if (ctx.state !== 'running' && !document.hidden) ctx.resume().catch(() => {}); });
   }
 
-  const music = createMusic(audio, {
-    getState: () => {
-      const cal = calendar(game.week);
-      return { season: cal.season, busy: game.pop.adults + game.pop.children + game.pop.elders > 40, threat: threat > 0, silent: game.gameOver, droneGain: 0.03 + 0.02 * threat };
-    },
-  });
+  /** Are the dead on the road? From the game itself, so a reloaded game in the middle of a warning still hears it. */
+  const dread = () => Boolean(game.disasters && game.raidGate && Number.isFinite(game.nextRaid) && game.nextRaid - game.week <= 3);
+  const music = createMusic(audio, { getState: () => ({ threat: dread(), silent: game.gameOver }) });
 
   // The browser may suspend the sound (a tab put away, a laptop asleep, a phone call) and only a click or key lets it go on: every one brings it back, not just the first, and so does coming back to the tab.
   const wakeUp = () => { audio.wake(); };
@@ -101,8 +97,8 @@ export function createSound({ game, scene }) {
   game.on('monster', ({ monster: m }) => { SFX.alarm(); setTimeout(() => ({ werewolf: SFX.howl, ghost: SFX.wail, goblins: SFX.cackle, cultists: SFX.chant })[m.kind]?.(), 1100); });
   game.on('slain', () => { if (ok('slain', 1)) { bell(0, 69, 2, 0.14); bell(0.25, 76, 2.4, 0.12); } });
   game.on('hallows', () => SFX.hallows());
-  game.on('warning', () => { threat = 1; SFX.horn(); });
-  game.on('raid', ({ outcome }) => { threat = 0; if (outcome === 'bought') return; SFX.clash(); setTimeout(() => (outcome === 'sacked' || outcome === 'pillaged' ? SFX.dirge() : SFX.fanfare()), 900); });
+  game.on('warning', () => SFX.horn());
+  game.on('raid', ({ outcome }) => { if (outcome === 'bought') return; SFX.clash(); setTimeout(() => (outcome === 'sacked' || outcome === 'pillaged' ? SFX.dirge() : SFX.fanfare()), 900); });
   game.on('harvest', () => SFX.harvest());
   game.on('merchant', () => SFX.coin());
   game.on('castle', () => SFX.fanfare());
@@ -110,7 +106,6 @@ export function createSound({ game, scene }) {
   game.on('arrival', () => { if (ok('arrive', 1.5)) SFX.arrive(); });
   game.on('gate', () => SFX.gate());
   game.on('gameover', () => SFX.dirge());
-  game.on('week', () => { if (threat > 0 && hash2(game.week, 3, 1) < 0.2) threat = 0; });
 
   const world = game.world;
   /** What is around the camera, counted every so often: water, trees, and sites where builders work. */
@@ -138,6 +133,8 @@ export function createSound({ game, scene }) {
     setVolume(which, v) { settings[which] = v; audio.setVolume(which, v); slot.write(settings); },
     toggleMute() { return audio.toggleMute(); },
     get muted() { return audio.muted; },
+    /** Which part of the score is playing: 'goth', 'dread' or null. */
+    get cue() { return music.cue; },
     update(dt) {
       if (!audio.ctx || !loops) return;
       music.update();
@@ -170,7 +167,7 @@ export function createSound({ game, scene }) {
       if (moanT <= 0) {
         moanT = 1.8 + Math.random() * 2.5;
         const left = game.nextRaid - game.week;
-        if (threat > 0 && game.raidGate && left <= 3) SFX.moan((1.2 - left * 0.3) * near);
+        if (dread()) SFX.moan((1.2 - left * 0.3) * near);
       }
       hammerT -= dt;
       if (hammerT <= 0) {

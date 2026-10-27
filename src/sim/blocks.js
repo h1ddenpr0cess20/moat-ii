@@ -49,10 +49,10 @@ export const HEARTS = Object.freeze({
 /** What an open core is worth if it is worked: by zone, its name and its share of the heart. */
 const CULTIVATED = Object.freeze({
   [ZONE_ID.res]: { name: 'Garden Block', fine: 0.3, why: 'kitchen gardens behind every house' },
-  [ZONE_ID.veg]: { name: 'Allotment Block', fine: 0.36, why: 'vegetable beds at the middle' },
-  [ZONE_ID.orchard]: { name: 'Orchard Block', fine: 0.42, why: 'apple and pear trees at the middle' },
+  [ZONE_ID.veg]: { name: 'Pumpkin Patch Block', fine: 0.36, why: 'a pumpkin patch at the middle' },
+  [ZONE_ID.orchard]: { name: 'Orchard Block', fine: 0.42, why: 'old apple trees at the middle' },
   [ZONE_ID.pasture]: { name: 'Common Pasture', fine: 0.32, why: 'sheep on the common' },
-  [ZONE_ID.wheat]: { name: 'Field Block', fine: 0.25, why: 'a field at the middle' },
+  [ZONE_ID.wheat]: { name: 'Cornfield Block', fine: 0.25, why: 'a field of corn at the middle' },
 });
 
 const isHome = (b) => Boolean(BUILDINGS[b.type]?.cap);

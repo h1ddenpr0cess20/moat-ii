@@ -19,7 +19,7 @@ import { heightAt } from '../world/world.js';
 export const TOOLS = [
   { id: 'select', icon: 'select', name: 'Look', key: '1', tip: 'Look at things and select them. Drag to move the map.' },
   { id: 'road', icon: 'road', name: 'Roads', key: '2', tip: 'Drag to lay a road. Houses and shops grow along streets.' },
-  { id: 'zone', icon: 'zone', name: 'Zones', key: '3', tip: 'Drag to zone land for houses, shops, fields and orchards.' },
+  { id: 'zone', icon: 'zone', name: 'Zones', key: '3', tip: 'Drag to zone land for houses, shops, corn, pumpkin patches and orchards.' },
   { id: 'block', icon: 'block', name: 'Blocks', key: '4', tip: 'Stamp a donut block: a street loop, a ring of homes and a heart.' },
   { id: 'build', icon: 'build', name: 'Build', key: '5', tip: 'Set down a building.' },
   { id: 'demolish', icon: 'demolish', name: 'Clear', key: '6', tip: 'Tear down buildings, roads and zones, and clear trees and rock for timber and stone.' },
@@ -29,7 +29,7 @@ export const BLOCK_SIZES = { small: 10, medium: 14, large: 18 };
 
 const tileOf = (p) => [Math.floor(p.x), Math.floor(p.z)];
 const ZONE_TINT = Object.fromEntries(Object.entries(ZONES).map(([k, z]) => [k, z.color]));
-const CORE_TINT = { res: '#8fd06a', veg: '#7fcf5a', orchard: '#d96a5a', pasture: '#9ec27a', wheat: '#e0b840', none: '#ffffff' };
+const CORE_TINT = { res: '#8fd06a', veg: '#e8762a', orchard: '#c8302a', pasture: '#9ec27a', wheat: '#e0b840', none: '#ffffff' };
 
 export function createTools(ctx) {
   const { game, scene, tip } = ctx;

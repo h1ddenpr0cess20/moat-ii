@@ -67,7 +67,7 @@ export function createHud(ctx) {
       + `<div class="row"><span>Eaten a week</span><span>${num(r.foodNeed ?? 0, 1)}</span></div>`
       + `<div class="row"><span>Lasts</span><span class="${weeks < 6 ? 'bad' : ''}">${weeks > 99 ? 'ages' : num(weeks, 1) + ' weeks'}</span></div>`
       + `<div class="row"><span>Varieties</span><span>${r.variety ?? 0} of 3 kinds</span></div>`
-      + `<div class="dim">People eat grain or bread, vegetables and fruit, and meat or fish. A table with all three is a happier one.</div>`;
+      + `<div class="dim">People eat corn or cornbread, pumpkins and apples, and meat or fish. A table with all three is a happier one.</div>`;
   });
   chip('pop', icon('people', 20), () => {
     const p = game.pop, r = game.report;

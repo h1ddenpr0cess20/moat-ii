@@ -13,10 +13,10 @@ import { BLOCK_SIZES, TOOLS } from './tools.js';
 
 const CORES = [
   ['res', 'Kitchen gardens', 'Gardens behind every house: some food, and shade.'],
-  ['veg', 'Allotments', 'Vegetable beds worked by the block.'],
-  ['orchard', 'Orchard', 'Apple and pear trees at the middle.'],
+  ['veg', 'Pumpkin patch', 'Pumpkins on the vine, worked by the block: food, and lanterns for All Hallows’ Eve.'],
+  ['orchard', 'Apple orchard', 'Gnarled old apple trees at the middle.'],
   ['pasture', 'Common pasture', 'Sheep on the common.'],
-  ['wheat', 'Wheat', 'A field in the middle. Needs a farmstead near.'],
+  ['wheat', 'Corn', 'A field of corn in the middle. Needs a farmstead near.'],
   ['none', 'Open ★', 'Leave it bare, and put a green, a well, a chapel or a tavern in the middle.'],
 ];
 
@@ -84,7 +84,7 @@ export function createToolbar(ctx) {
           h('span.group', {}, h('span.label', {}, 'Street'), seg([['dirt', 'Dirt'], ['cobble', 'Cobbled']], b.road, (v) => tools.set('block', { block: { road: v } })))),
         h('div.row', {}, h('span.label', {}, 'Core'), ...CORES.map(([id, name, desc]) => opt(name, b.core === id, () => tools.set('block', { block: { core: id } }), { title: desc }))),
         h('div.hint', { html: b.ring === 'croft'
-          ? '<b>Agricultural block.</b> Crofts grow around the ring when people want work, each family on its own strip; they rise to smallholdings and granges. Put wheat or pasture in the core, or leave it open for a <b>granary</b> or a <b>windmill</b>.'
+          ? '<b>Agricultural block.</b> Crofts grow around the ring when people want work, each family on its own strip; they rise to smallholdings and granges. Put corn or pasture in the core, or leave it open for a <b>granary</b> or a <b>windmill</b>.'
           : b.ring === 'craft'
             ? '<b>Workshop block.</b> Workshops grow around the ring when people want work, turning timber into tools and wares; they rise to joineries and craft halls. Leave the core open for a <b>storehouse</b> or a <b>smithy</b>: the trades around it make a quarter more. Keep it back from the houses.'
             : b.core === 'none'

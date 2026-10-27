@@ -482,7 +482,7 @@ export function relief(game) {
   spend(game, 'gold', n * price);
   gain(game, 'grain', n);
   game.nextRelief = game.week + 4;
-  game.note(`The stores were all but bare: your steward bought ${n} grain from carters for ${Math.round(n * price)} gold. Fields would be cheaper.`, 'info');
+  game.note(`The stores were all but bare: your steward bought ${n} corn from carters for ${Math.round(n * price)} gold. Fields would be cheaper.`, 'info');
 }
 
 /** Everyone eats, burns fuel, drinks and wears out what they own. */

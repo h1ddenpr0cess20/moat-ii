@@ -97,7 +97,7 @@ function blocksTab(ctx, body) {
   fill(body, 
     h('div.grid2', {},
       h('div', {}, h('h3', {}, 'The donut'), h('p', {}, 'A loop of streets with a ring of homes around the inside and, in the middle, a park or a building that serves them all. The closer the ring is to complete, and the better the heart, the higher the rating.'),
-        h('p', { html: '<b>Hearts, best first:</b> village green, cathedral, chapel, market square, castle, tavern, healer, well, watchtower; or kitchen gardens, an orchard or a common. A ring of workshops or smallholdings wants a storehouse, granary, smithy or windmill.' })),
+        h('p', { html: '<b>Hearts, best first:</b> village green, cathedral, chapel, market square, castle, tavern, healer, well, watchtower; or kitchen gardens, a pumpkin patch, an apple orchard or a common. A ring of workshops or smallholdings wants a storehouse, granary, smithy or windmill.' })),
       h('div', {}, h('h3', {}, 'What the blocks bring the realm'),
         h('div.stat', {}, h('span', {}, 'Taxes'), h('b', { class: g.tax > 0 ? 'good' : '' }, `+${(g.tax * 100).toFixed(1)}%`)),
         h('div.stat', {}, h('span', {}, 'Courtyard rooms'), h('b', { class: g.cap > 0 ? 'good' : '' }, `+${g.cap} people`)),

@@ -81,7 +81,7 @@ export function createUI({ game, scene, root, clock, sfx = () => {}, extra = {} 
     else if (e.code === 'F10') ctx.dialogs.toggle('menu');
   });
 
-  let t = 0, slow = 0, mapT = 0, mapN = 0, hudFoot = -1;
+  let t = 0, slow = 0, mapT = 0, mapN = 0, hudFoot = -1, toastLift = -1;
   const ui = {
     ctx, tools: ctx.tools, hud, toasts, dialogs: ctx.dialogs, steward: ctx.steward, hide(on) { root.classList.toggle('away', on); },
     update(dt) {
@@ -94,6 +94,18 @@ export function createUI({ game, scene, root, clock, sfx = () => {}, extra = {} 
         // The top bar wraps on a narrow screen: what hangs below it (the steward, the inspector) follows its foot.
         const foot = Math.round(hud.el.getBoundingClientRect().bottom);
         if (foot !== hudFoot) { hudFoot = foot; root.style.setProperty('--hud-bottom', `${foot}px`); }
+        // The messages rise above whatever stands on the dock beneath them (the tool's choices, the panel as a sheet on a phone).
+        const dock = toolbar.dock.getBoundingClientRect(), col = toasts.el.getBoundingClientRect();
+        if (dock.height) {
+          let top = dock.top;
+          for (const el of [toolbar.options, ctx.inspector.el]) {
+            if (el.hidden || !el.offsetParent) continue;
+            const r = el.getBoundingClientRect();
+            if (r.bottom >= dock.top - 24 && r.left < col.right && r.right > col.left) top = Math.min(top, r.top);
+          }
+          const lift = Math.round(root.getBoundingClientRect().bottom - top);
+          if (lift !== toastLift) { toastLift = lift; root.style.setProperty('--foot', `${lift}px`); }
+        }
       }
       if (mapT <= 0) { mapT = 1; minimap.update(); if (++mapN % 5 === 0) minimap.repaint(); }
       slow -= dt;

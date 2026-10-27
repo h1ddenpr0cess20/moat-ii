@@ -61,7 +61,7 @@ function stores(ctx, body) {
   const cap = game.cap ?? {};
   fill(body, 
     h('p', {}, 'A merchant comes to your gates now and then once you have a market square. He buys what you hold above your sell mark and sells you what you are short of, up to your buy mark.'),
-    h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Good'), h('th.r', {}, 'In store'), h('th.r', {}, 'Made'), h('th.r', {}, 'Used'), h('th.r', {}, 'Sells / buys at'), h('th.r', {}, 'Sell above'), h('th.r', {}, 'Buy up to'))), h('tbody', {}, ...rows)),
+    h('div.table-wrap', {}, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Good'), h('th.r', {}, 'In store'), h('th.r', {}, 'Made'), h('th.r', {}, 'Used'), h('th.r', {}, 'Sells / buys at'), h('th.r', {}, 'Sell above'), h('th.r', {}, 'Buy up to'))), h('tbody', {}, ...rows))),
     h('p.dim', {}, `Food stores hold ${num(cap.food ?? 0)}, goods stores ${num(cap.goods ?? 0)}. What does not fit spoils or is lost. Build a granary or a storehouse for more.`));
 }
 
@@ -84,7 +84,7 @@ function labor(ctx, body) {
   fill(body, 
     h('div.grid2', {}, h('div', {}, h('div.stat', {}, h('span', {}, 'Adults who can work'), h('b', {}, round(r.workforce ?? 0))), h('div.stat', {}, h('span', {}, 'At work'), h('b', {}, round(r.employed ?? 0))), h('div.stat', {}, h('span', {}, 'Idle'), h('b', { class: (r.idle ?? 0) > 2 ? 'bad' : '' }, round(r.idle ?? 0))), h('div.stat', {}, h('span', {}, 'Jobs unfilled'), h('b', {}, round(r.jobsOpen ?? 0)))),
       h('p', {}, 'Food comes first, then the builders. When there are too few hands, the places set to High are staffed before the rest. Set a place to Off to send its workers elsewhere.')),
-    h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Place'), h('th.r', {}, 'Workers'), h('th.r', {}, 'Priority'))), h('tbody', {}, ...rows)));
+    h('div.table-wrap', {}, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Place'), h('th.r', {}, 'Workers'), h('th.r', {}, 'Priority'))), h('tbody', {}, ...rows))));
 }
 
 function blocksTab(ctx, body) {
@@ -103,7 +103,7 @@ function blocksTab(ctx, body) {
         h('div.stat', {}, h('span', {}, 'Courtyard rooms'), h('b', { class: g.cap > 0 ? 'good' : '' }, `+${g.cap} people`)),
         h('div.stat', {}, h('span', {}, 'Mood'), h('b', { class: g.mood > 0 ? 'good' : '' }, `+${g.mood.toFixed(1)}`)),
         h('div.stat', {}, h('span', {}, 'Shop sales'), h('b', { class: g.shops > 0 ? 'good' : '' }, `+${(g.shops * 100).toFixed(0)}%`)))),
-    blocks.length ? h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Block'), h('th.r', {}, 'Rating'), h('th', {}, 'Standing'), h('th.r', {}, 'Homes · trades'), h('th.r', {}, 'Ring built'), h('th', {}, 'Heart'))), h('tbody', {}, ...rows))
+    blocks.length ? h('div.table-wrap', {}, h('table', {}, h('thead', {}, h('tr', {}, h('th', {}, 'Block'), h('th.r', {}, 'Rating'), h('th', {}, 'Standing'), h('th.r', {}, 'Homes · trades'), h('th.r', {}, 'Ring built'), h('th', {}, 'Heart'))), h('tbody', {}, ...rows)))
       : h('p', { html: 'You have no blocks yet. Take the <b>Blocks</b> tool, stamp one on open ground and leave its core open for a green.' }),
     best ? h('p.warn', { html: `✦ ${best.name === 'Hollow Block' ? 'A block' : best.name} near (${Math.round(best.center[0])}, ${Math.round(best.center[1])}) has no heart yet. Put a village green or a well in the middle.` }) : null);
 }

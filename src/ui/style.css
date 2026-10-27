@@ -98,7 +98,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- dock ---------- */
 .dock {
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%);
-  display: flex; gap: 6px; padding: 6px; max-width: calc(100vw - 16px);
+  display: flex; gap: 6px; padding: 6px; width: max-content; max-width: calc(100vw - 16px);
 }
 .tool {
   position: relative; width: 62px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
@@ -118,12 +118,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- options bar ---------- */
 .options {
   position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
-  max-width: min(980px, calc(100vw - 16px)); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
+  width: max-content; max-width: min(980px, calc(100vw - 16px)); padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;
 }
 /* Its rows keep their size: when the bar is held to a height it scrolls, rather than squeezing the cards until their words spill out of them. */
 .options > * { flex-shrink: 0; }
 .options .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; justify-content: center; }
 .options .label { color: var(--text-dim); font-size: 12.5px; margin-right: 4px; }
+.options .group { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px; }
 .opt {
   display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 7px; font-size: 13.5px;
   background: linear-gradient(180deg, #5d4325, #3a2815); border: 1px solid #170e07;
@@ -153,7 +154,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: absolute; right: 8px; top: calc(var(--hud-bottom, 56px) + 8px); width: 316px; max-height: calc(100vh - var(--hud-bottom, 56px) - 240px); overflow: auto; padding: 12px 14px 14px;
   scrollbar-width: thin;
 }
-.inspector h2 { margin: 0 0 2px; font-size: 18px; display: flex; gap: 8px; align-items: center; }
+.inspector h2 { margin: 0 0 2px; padding-right: 24px; font-size: 18px; display: flex; gap: 8px; align-items: center; }
 .inspector .sub { color: var(--text-dim); font-size: 12.5px; margin-bottom: 8px; }
 .inspector p { margin: 6px 0; font-size: 13.5px; line-height: 1.4; color: #e6dcc0; }
 .inspector .x { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; padding: 0; display: grid; place-items: center; }
@@ -177,7 +178,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .minimap canvas { display: block; width: 176px; height: 176px; border-radius: 5px; cursor: crosshair; image-rendering: auto; }
 
 /* ---------- toasts ---------- */
-.toasts { position: absolute; left: 10px; bottom: 90px; display: flex; flex-direction: column-reverse; gap: 6px; width: min(340px, calc(100vw - 210px)); pointer-events: none; }
+.toasts { position: absolute; left: 10px; bottom: calc(var(--foot, 84px) + 6px); display: flex; flex-direction: column-reverse; gap: 6px; width: min(340px, calc(100vw - 210px)); pointer-events: none; }
 .toast {
   pointer-events: auto; display: flex; gap: 8px; align-items: flex-start; padding: 8px 11px; font-size: 13.5px; line-height: 1.3;
   background: linear-gradient(180deg, #3a2a18ee, #2a1d11ee); border: 1px solid #0d0804; border-left: 4px solid var(--info);
@@ -210,6 +211,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tabs { display: flex; gap: 4px; padding: 6px 12px 0; flex-wrap: wrap; }
 .tab { padding: 6px 14px; border-radius: 7px 7px 0 0; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(0, 0, 0, 0.5); border-bottom: 0; font-size: 14px; }
 .tab.on { background: var(--parch); color: var(--ink); font-weight: 700; }
+/* A table too wide for the page slides on its own, rather than pushing the whole page sideways. */
+.table-wrap { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .parch table { width: 100%; border-collapse: collapse; font-size: 14px; }
 .parch th { text-align: left; font-weight: 700; padding: 5px 8px; border-bottom: 2px solid #8a6a3c; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-2); }
 .parch td { padding: 4px 8px; border-bottom: 1px solid rgba(90, 70, 48, 0.25); font-variant-numeric: tabular-nums; }
@@ -263,7 +266,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .steward .words b { color: var(--gold); }
 .steward .skip { margin-left: auto; font-size: 12px; opacity: 0.8; }
 
-.banner { position: absolute; left: 50%; top: calc(var(--hud-bottom, 56px) + 48px); transform: translateX(-50%); padding: 8px 18px; font-size: 16px; font-weight: 700; border-radius: 8px; animation: rise 0.3s; }
+.banner { position: absolute; left: 50%; top: calc(var(--hud-bottom, 56px) + 48px); transform: translateX(-50%); max-width: calc(100vw - 16px); text-align: center; padding: 8px 18px; font-size: 16px; font-weight: 700; border-radius: 8px; animation: rise 0.3s; }
 .banner.bad { background: #5a1c12ee; border: 1px solid #e0634d; }
 .banner.good { background: #1c3a12ee; border: 1px solid #7cc04a; }
 
@@ -290,75 +293,122 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #ui.away > .hud, #ui.away > .dock, #ui.away > .options, #ui.away > .minimap, #ui.away > .inspector, #ui.away > .toasts, #ui.away > .labels, #ui.away > .steward { display: none; }
 
 /* ---------- phones ---------- */
+/* Nothing on a phone slides sideways: the bars wrap or share out the width, and a panel that has more to say scrolls up and down, once. */
 @media (max-width: 760px), (max-height: 520px) {
-  /* The top bar packs down: the realm's name gives way to its crown and date, the chips shrink, the clock tucks in. */
-  .hud { top: max(4px, env(safe-area-inset-top)); left: 4px; right: 4px; gap: 4px; }
+  #ui {
+    --sl: max(4px, env(safe-area-inset-left));
+    --sr: max(4px, env(safe-area-inset-right));
+    --sb: max(6px, env(safe-area-inset-bottom));
+    /* The dock's height, and what stands on it sits just above. */
+    --dock-h: 64px;
+  }
+  /* The top bar packs down: the realm's name gives way to its date, the chips shrink, the clock tucks in. */
+  .hud { top: max(4px, env(safe-area-inset-top)); left: var(--sl); right: var(--sr); gap: 4px; }
   .hud .panel { padding: 3px 6px; min-height: 34px; gap: 6px; }
   .realm .title { display: none; }
   .realm > span:first-child { display: none; }
-  .chip { min-width: 0; padding: 2px 5px; gap: 3px; font-size: 12.5px; }
+  /* Two rows: the date and the clock above, the stores in a grid of four below. The date wraps before the clock is pushed down. */
+  .realm { order: 1; flex: 1 1 0; min-width: 0; }
+  .realm > div { min-width: 0; }
+  .realm .date { font-size: 12px; line-height: 1.15; }
+  .speed { order: 2; margin-left: 0; gap: 2px !important; }
+  .hud .chips { order: 3; flex: 1 1 100%; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px !important; }
+  .chip { min-width: 0; padding: 2px 5px; gap: 3px; font-size: 12.5px; white-space: nowrap; overflow: hidden; }
   .chip .ic { width: 16px; height: 16px; }
   .chip small, .chip .d { display: none; }
   .chip.threat .d, .chip.low .d { display: inline; }
-  /* Two rows: the date and the clock above, the stores in one row below that slides sideways under a thumb. */
-  .realm { order: 1; }
-  .speed { order: 2; margin-left: auto; }
-  .chips { order: 3; flex: 1 1 100%; flex-wrap: nowrap !important; overflow-x: auto; scrollbar-width: none; }
-  .chips::-webkit-scrollbar { display: none; }
-  .chip { flex: none; }
-  .speed button, .iconbtn { width: 32px; height: 32px; }
+  .chip.threat { grid-column: 1 / -1; justify-content: center; }
+  /* The dead on the road and what is loose in the town share the row when both are up. */
+  .chip.threat:has(+ .chip.threat:not([hidden])), .chip.threat:not([hidden]) + .chip.threat { grid-column: span 2; }
+  .speed button, .iconbtn { width: 30px; height: 32px; }
   .speed .sep { display: none; }
   .speed .paused { display: none; }
-  /* The dock scrolls sideways under a thumb rather than spilling off the screen. */
-  .dock { left: 4px; right: 4px; transform: none; bottom: max(6px, env(safe-area-inset-bottom)); max-width: none; overflow-x: auto; overscroll-behavior: contain; scrollbar-width: none; justify-content: flex-start; padding: 4px; gap: 4px; }
-  .dock::-webkit-scrollbar { display: none; }
-  /* The tools share the width out, so all of them fit on a phone held upright; only past that does the dock scroll. */
-  .tool { flex: 1 0 42px; width: auto; min-width: 42px; height: 52px; font-size: 10px; }
+  /* The tools share out the width, so all of them fit on the narrowest phone held upright. */
+  .dock { left: var(--sl); right: var(--sr); transform: none; bottom: var(--sb); width: auto; max-width: none; padding: 4px; gap: 3px; }
+  .tool { flex: 1 1 0; width: auto; min-width: 0; height: 52px; font-size: 10px; }
+  .tool > span:nth-child(2) { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tool .ic { width: 24px; height: 24px; }
   .tool kbd { display: none; }
   .dock .sep { margin: 4px 0; }
-  .options { left: 4px; right: 4px; transform: none; max-width: none; bottom: calc(max(6px, env(safe-area-inset-bottom)) + 68px); max-height: 38vh; overflow-y: auto; padding: 6px; }
-  .options .row { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .options .row::-webkit-scrollbar { display: none; }
-  .opt { flex: none; padding: 8px 10px; }
-  .hint { font-size: 12px; text-align: left; max-width: none; }
-  .cards { scroll-snap-type: x proximity; }
-  .card { scroll-snap-align: start; width: 118px; }
-  .steward { left: 4px; right: 4px; width: auto; padding: 8px 10px; }
-  #ui.tooling > .steward { display: none; }
+  /* The tool's choices wrap to the width; when a tool has a lot to say the bar scrolls, with its buttons kept at the foot. */
+  .options {
+    left: var(--sl); right: var(--sr); transform: none; width: auto; max-width: none; bottom: calc(var(--sb) + var(--dock-h) + 4px);
+    max-height: 46vh; max-height: min(46dvh, calc(100dvh - var(--hud-bottom, 100px) - var(--dock-h) - 24px));
+    overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 6px 6px 0; gap: 6px;
+  }
+  .options .row { justify-content: flex-start; gap: 5px; }
+  .options .label { margin-right: 0; font-size: 12px; }
+  .opt { padding: 7px 9px; font-size: 13px; }
+  .options .seg button { padding: 7px 9px; font-size: 13px; }
+  .hint { font-size: 12px; text-align: left; max-width: none; line-height: 1.35; }
+  /* The hint is cut to two lines; a tap on it reads the rest. */
+  .options div.hint { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; cursor: pointer; }
+  .options div.hint.open { display: block; }
+  .options .actions-row { position: sticky; bottom: 0; z-index: 1; margin: 0 -6px; padding: 6px; background: var(--wood); border-top: 1px solid rgba(255, 230, 170, 0.12); border-radius: 0 0 10px 10px; }
+  .options .actions-row .hint { display: none; }
+  /* The buildings in a grid, not a strip to swipe through. */
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); overflow: visible; padding: 0; }
+  .card { width: auto; min-width: 0; padding: 5px 7px; gap: 2px; }
+  .card .name { font-size: 13px; line-height: 1.15; }
+  .card small { font-size: 11px; }
+  .steward { left: var(--sl); right: var(--sr); width: auto; padding: 8px 10px; }
+  /* While a tool is in hand, the steward and the panel step aside, to leave the land to work on. */
+  #ui.tooling > .steward, #ui.tooling > .inspector { display: none; }
   .steward .words { font-size: 13px; }
   .steward .portrait { width: 28px; height: 28px; }
-  .inspector { top: auto; left: 4px; right: 4px; width: auto; bottom: calc(max(6px, env(safe-area-inset-bottom)) + 68px); max-height: 46vh; padding: 10px 12px; }
-  .toasts { left: 4px; bottom: calc(max(6px, env(safe-area-inset-bottom)) + 72px); width: calc(100vw - 8px); }
+  .inspector {
+    top: auto; left: var(--sl); right: var(--sr); width: auto; bottom: calc(var(--sb) + var(--dock-h) + 4px);
+    max-height: 46vh; max-height: min(46dvh, calc(100dvh - var(--hud-bottom, 100px) - var(--dock-h) - 24px));
+    padding: 10px 12px; overscroll-behavior: contain;
+  }
+  .inspector h2 { font-size: 16.5px; }
+  .toasts { left: var(--sl); width: calc(100vw - var(--sl) - var(--sr)); }
   .toast { font-size: 12.5px; padding: 6px 9px; }
-  .dialog { width: 100vw; max-height: 100dvh; border-radius: 0; }
-  .dialog > .body { padding: 10px; }
+  /* A dialog fills the screen, clear of the notch and the home bar. */
+  .veil { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  .dialog {
+    width: calc(100vw - env(safe-area-inset-left) - env(safe-area-inset-right)) !important; border-radius: 0;
+    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  .dialog > header { padding: 8px 10px; }
+  .dialog > header h2 { font-size: 17px; }
+  .dialog > .body { padding: 10px; overscroll-behavior: contain; }
+  .tabs { padding: 6px 8px 0; }
+  .tabs .tab { padding: 8px 10px; font-size: 13px; }
   .parch table { font-size: 12.5px; }
-  .parch td, .parch th { padding: 4px 4px; }
+  .parch td, .parch th { padding: 4px; }
+  .parch th { text-transform: none; letter-spacing: 0; font-size: 12px; }
+  .parch input[type='number'] { width: 52px; }
+  .parch td .seg button { padding: 6px 7px; font-size: 12.5px; }
+  .title-card label { flex-wrap: wrap; }
   .tip { max-width: min(300px, calc(100vw - 16px)); }
   .minimap { display: none; }
 }
 /* A phone on its side: little height, so the top bar is one row, the tools are lower, and the panels sit beside the land rather than over it. */
 @media (max-height: 520px) and (min-width: 561px) {
+  #ui { --dock-h: 54px; }
   .hud { flex-wrap: nowrap; }
-  .chips { order: 2; flex: 1 1 auto; min-width: 0; }
-  .speed { order: 3; margin-left: 0; }
+  .realm { flex: none; }
+  .hud .chips { order: 2; flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; justify-content: center; }
+  .chip { flex: 1 0 auto; justify-content: center; }
+  .speed { order: 3; }
   .hud .panel { min-height: 32px; }
   .speed button, .iconbtn { width: 30px; height: 28px; }
-  .tool { height: 44px; flex-basis: 50px; max-width: 72px; }
+  .dock { left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 8px); }
+  .tool { flex: none; width: 62px; height: 44px; }
   .tool .ic { width: 20px; height: 20px; }
-  .dock { left: 50%; right: auto; transform: translateX(-50%); max-width: calc(100vw - 8px); }
   .steward { right: auto; width: min(440px, 58vw); }
   .steward .words { font-size: 12.5px; line-height: 1.3; }
-  .options { bottom: calc(max(6px, env(safe-area-inset-bottom)) + 56px); max-height: calc(100dvh - var(--hud-bottom, 44px) - 72px); gap: 4px; padding: 5px 6px; }
-  /* Room is short, so the bar says less: no line of builders and weeks on a card (the tip has the rest), no reminder of the gestures. */
-  .opt { padding: 5px 10px; }
+  /* The tool's choices stand at the left, over the dock, and leave the land to the right free to work on. */
+  .options { right: auto; width: min(400px, 54vw); max-height: calc(100dvh - var(--hud-bottom, 44px) - var(--dock-h) - 20px); gap: 4px; padding: 5px 6px 0; }
+  /* Room is short, so the bar says less: no line of builders and weeks on a card. */
+  .opt, .options .seg button { padding: 5px 9px; }
   .card { padding: 4px 7px; gap: 1px; }
   .card .cost:last-child { display: none; }
-  .options .actions-row .hint { display: none; }
-  .inspector { left: auto; right: 4px; width: min(340px, 46vw); top: calc(var(--hud-bottom, 44px) + 4px); bottom: calc(max(6px, env(safe-area-inset-bottom)) + 56px); max-height: none; }
-  .toasts { bottom: calc(max(6px, env(safe-area-inset-bottom)) + 58px); width: min(340px, 50vw); }
-  .dialog { max-height: 100dvh; }
+  .card.locked .cost:last-child { display: flex; }
+  .inspector { left: auto; right: var(--sr); width: min(340px, 46vw); top: calc(var(--hud-bottom, 44px) + 4px); bottom: calc(var(--sb) + var(--dock-h) + 4px); max-height: none; }
+  .toasts { width: min(340px, 50vw); }
   .dialog > header { padding: 6px 12px; }
   .title-screen { gap: 8px; }
   .title-card { padding: 12px 16px; gap: 7px; }
@@ -368,6 +418,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .btn.small { padding: 7px 12px; font-size: 14px; }
   .seg button { padding: 7px 12px; font-size: 14px; }
   .inspector .x { width: 36px; height: 36px; }
+  .inspector h2 { padding-right: 36px; }
   .tab { padding: 9px 14px; }
 }
 .options .actions-row { justify-content: flex-end; gap: 8px; }

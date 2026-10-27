@@ -44,6 +44,12 @@ export function createToolbar(ctx) {
   const opt = (label, on, onclick, extra = {}) => h('button.opt', { class: on ? 'on' : '', onclick, ...extra }, ...(Array.isArray(label) ? label : [label]));
   let buildCat = 'food';
   const put = (...kids) => add(options, kids);
+  // On a phone the hint is cut to two lines; a tap on it reads the rest, and it stays open until tapped again.
+  let hintOpen = false;
+  options.addEventListener('click', (e) => {
+    const hint = e.target.closest?.('div.hint');
+    if (hint) { hintOpen = !hintOpen; hint.classList.toggle('open', hintOpen); }
+  });
 
   const touch = () => globalThis.matchMedia?.('(pointer: coarse)').matches ?? false;
   const render = () => {
@@ -72,9 +78,10 @@ export function createToolbar(ctx) {
     } else if (t === 'block') {
       const b = o.block;
       put(
-        h('div.row', {}, h('span.label', {}, 'Size'), seg(Object.entries(BLOCK_SIZES).map(([k, n]) => [k, `${k[0].toUpperCase() + k.slice(1)} ${n}`]), b.size, (v) => tools.set('block', { block: { size: v } })),
-          h('span.label', {}, 'Ring'), seg([['res', 'Homes'], ['market', 'Shops'], ['croft', 'Smallholdings'], ['craft', 'Workshops']], b.ring, (v) => tools.set('block', { block: { ring: v } })),
-          h('span.label', {}, 'Street'), seg([['dirt', 'Dirt'], ['cobble', 'Cobbled']], b.road, (v) => tools.set('block', { block: { road: v } }))),
+        // Each label keeps to its choices when the row wraps on a narrow screen.
+        h('div.row', {}, h('span.group', {}, h('span.label', {}, 'Size'), seg(Object.entries(BLOCK_SIZES).map(([k, n]) => [k, `${k[0].toUpperCase() + k.slice(1)} ${n}`]), b.size, (v) => tools.set('block', { block: { size: v } }))),
+          h('span.group', {}, h('span.label', {}, 'Ring'), seg([['res', 'Homes'], ['market', 'Shops'], ['croft', 'Smallholdings'], ['craft', 'Workshops']], b.ring, (v) => tools.set('block', { block: { ring: v } }))),
+          h('span.group', {}, h('span.label', {}, 'Street'), seg([['dirt', 'Dirt'], ['cobble', 'Cobbled']], b.road, (v) => tools.set('block', { block: { road: v } })))),
         h('div.row', {}, h('span.label', {}, 'Core'), ...CORES.map(([id, name, desc]) => opt(name, b.core === id, () => tools.set('block', { block: { core: id } }), { title: desc }))),
         h('div.hint', { html: b.ring === 'croft'
           ? '<b>Agricultural block.</b> Crofts grow around the ring when people want work, each family on its own strip; they rise to smallholdings and granges. Put wheat or pasture in the core, or leave it open for a <b>granary</b> or a <b>windmill</b>.'
@@ -110,6 +117,7 @@ export function createToolbar(ctx) {
       touch() ? h('span.hint', {}, 'Two fingers slide, pinch and turn the map.') : null,
       ...actions,
       h('button.btn.small', { onclick: () => tools.cancel(), title: 'Put the tool down [Esc]', html: `${icon('close', 14)} Done` })));
+    options.querySelector('div.hint')?.classList.toggle('open', hintOpen);
   };
 
   tools.onChange(render);

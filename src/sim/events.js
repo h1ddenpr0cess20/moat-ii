@@ -1,9 +1,9 @@
 import { BUILDINGS, CASTLE_LEVELS, GOODS, RANKS } from '../catalog.js';
-import { CENTER } from '../config.js';
+import { CENTER, DIRS } from '../config.js';
 import { clamp } from '../rng.js';
 import { removeBuilding } from '../world/buildings.js';
 import { network } from '../world/roads.js';
-import { idx } from '../world/world.js';
+import { idx, inb, touch } from '../world/world.js';
 import { ownedCount } from '../world/wards.js';
 import { setZone } from '../world/zoning.js';
 import { calendar } from './calendar.js';
@@ -139,6 +139,31 @@ export function threatOf(game) {
   return (2 + cal.year * 1.4 + headcount(game) * 0.05 + ownedCount(game.world) * 1.8) * (DIFFICULTY[game.difficulty] ?? 1) * (1 - 0.1 * Math.min(3, graves));
 }
 
+/** How far out the dead come from, and how wide a way they trample through the woods to the gate. */
+export const HORDE_REACH = 24;
+const TRAMPLE = 1.2;
+
+/**
+ * The dead do not go round a wood: they trample a way through it, from as far off as they rose to the outer end of
+ * the gate's bridge, and the lord can watch them come down it. Only the land beyond the moat is trodden; the trees
+ * grow back in time.
+ */
+export function trample(game, gate) {
+  const { world } = game;
+  const out = DIRS[gate.dir];
+  const [mx, my] = gate.mid;
+  for (let k = 3; k <= HORDE_REACH + 2; k++) {
+    for (let a = -TRAMPLE; a <= TRAMPLE; a += 0.5) {
+      const x = Math.floor(mx + out[0] * k - out[1] * a), y = Math.floor(my + out[1] * k + out[0] * a);
+      if (!inb(x, y)) continue;
+      const i = idx(x, y);
+      if (world.realm[i] || !world.tree[i]) continue;
+      world.tree[i] = 0;
+      touch(world, ['trees', 'ground'], x, y);
+    }
+  }
+}
+
 /** The gate the dead make for: the weakest, a raised drawbridge counting for what it is worth. Ties fall to chance. */
 function weakestGate(game) {
   let best = [], low = Infinity;
@@ -160,6 +185,7 @@ export function raids(game) {
   if (game.week === game.nextRaid - WARNING && game.nextRaid !== Infinity) {
     game.raidGate = weakestGate(game);
     const g = game.raidGate;
+    if (g) trample(game, g);
     game.note(g ? `The dead are rising to the ${DIRECTIONS[g.dir]}! A horde of zombies is shambling toward the ${DIRECTIONS[g.dir]} gate. They will be here in ${WARNING} weeks.` : 'The dead are rising, and shambling on the castle!', 'bad', g?.mid ?? [CENTER, CENTER]);
     game.emit('warning', { gate: g });
     return;

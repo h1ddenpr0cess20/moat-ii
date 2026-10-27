@@ -3,7 +3,7 @@ import { createBakeLibrary } from 'madness-engine/models/bake';
 import { CENTER, DIRS, ROAD, WATER_LEVEL } from '../config.js';
 import { BUILDINGS, ZONE_ID } from '../catalog.js';
 import { MONSTERS } from '../sim/monsters.js';
-import { WARNING, threatOf } from '../sim/events.js';
+import { HORDE_REACH, WARNING, threatOf } from '../sim/events.js';
 import { hash2 } from '../rng.js';
 import { heightAt, idx, inb } from '../world/world.js';
 import { CAST, SCULPTED, fitScale } from './cast.js';
@@ -49,7 +49,7 @@ function along(points, f) {
   return { x: points[points.length - 1][0], y: points[points.length - 1][1], dx: 0, dy: 0 };
 }
 
-export function createMonsters({ GFX, scene, game, world, atmosphere }) {
+export function createMonsters({ GFX, scene, game, world, atmosphere, fx }) {
   const group = new GFX.Group();
   group.name = 'monsters';
   scene.add(group);
@@ -91,6 +91,7 @@ export function createMonsters({ GFX, scene, game, world, atmosphere }) {
   let aftermath = null;
   /** The last horde as it stood, so the aftermath starts where it was. */
   let lastHorde = null;
+  let mistClock = 0;
 
   game.on('raid', ({ gate, outcome }) => {
     if (!lastHorde || !gate) return;
@@ -160,7 +161,7 @@ export function createMonsters({ GFX, scene, game, world, atmosphere }) {
     const out = DIRS[gate.dir], side = [-out[1], out[0]];
     const [mx, my] = gate.mid;
     const end = [mx + out[0] * 3.6, my + out[1] * 3.6];
-    const reach = 24;
+    const reach = HORDE_REACH;
     const far = [Math.max(1, Math.min(world.size - 1, mx + out[0] * reach)), Math.max(1, Math.min(world.size - 1, my + out[1] * reach))];
     const list = [];
     for (let i = 0; i < n; i++) {
@@ -183,6 +184,13 @@ export function createMonsters({ GFX, scene, game, world, atmosphere }) {
       const list = hordeAt(g, n, p);
       lastHorde = { gate: g, list };
       list.forEach((z, i) => place(`h${i}`, z.name, z.x, z.y, { yaw: z.yaw, clip: p >= 1 ? 'attack' : 'walk', phase: i }));
+      // Mist rises off them as they go, so that a horde can be seen coming through the woods.
+      mistClock -= dt;
+      if (mistClock <= 0 && fx) {
+        mistClock = 0.12;
+        const z = list[Math.floor(Math.random() * list.length)];
+        fx.mist(z.x, heightAt(world, z.x, z.y), z.y);
+      }
     }
     if (aftermath) {
       aftermath.t += dt;

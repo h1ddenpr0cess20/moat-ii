@@ -48,7 +48,7 @@ export async function createScene({ host, game, progress = () => {} }) {
   const overlays = createOverlays(GFX, world, stage.scene);
   const camera = createCamera({ GFX, stage, world, viewDef, dom: stage.renderer.domElement });
   const atmosphere = createAtmosphere({ GFX, stage, sunDir, materials, terrain, water, domes, fx, seed: world.seed });
-  const monsters = createMonsters({ GFX, scene: stage.scene, game, world, atmosphere });
+  const monsters = createMonsters({ GFX, scene: stage.scene, game, world, atmosphere, fx });
 
   const cal0 = calendar(game.week);
   water.build();

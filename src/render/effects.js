@@ -3,8 +3,8 @@ import { hash2 } from '../rng.js';
 import { heightAt } from '../world/world.js';
 
 /**
- * Things in the air: chimney smoke drifting off on the wind, and the flames
- * and black smoke of a fire. (Rain and snow are shown by the light and the
+ * Things in the air: chimney smoke drifting off on the wind, the flames
+ * and black smoke of a fire, and the green mist that rises off the dead. (Rain and snow are shown by the light and the
  * ground, not by falling drops.) Smoke is a pool of soft puffs that rise,
  * swell and fade; every puff of one kind (chimney smoke, black smoke, flame)
  * is drawn in a single call.
@@ -20,7 +20,9 @@ export function createFx(GFX, scene, world) {
   const smokeMat = new GFX.MeshBasicMaterial({ color: new GFX.Color('#d4d4d6'), transparent: true, opacity: 0.4, depthWrite: false, toneMapped: false });
   const blackMat = new GFX.MeshBasicMaterial({ color: new GFX.Color('#2c2a2a'), transparent: true, opacity: 0.5, depthWrite: false, toneMapped: false });
   const flameMat = new GFX.MeshBasicMaterial({ color: new GFX.Color('#ff8a2a'), transparent: true, opacity: 0.85, blending: GFX.AdditiveBlending, depthWrite: false, toneMapped: false });
-  const kinds = [smokeMat, blackMat, flameMat].map((material) => {
+  // The grave-mist that hangs over the dead when they walk: sickly green, faint, glowing a little through the trees.
+  const mistMat = new GFX.MeshBasicMaterial({ color: new GFX.Color('#5ab87a'), transparent: true, opacity: 0.32, blending: GFX.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const kinds = [smokeMat, blackMat, flameMat, mistMat].map((material) => {
     const mesh = new GFX.InstancedMesh(geometry, material, MAX);
     mesh.renderOrder = 4;
     mesh.frustumCulled = false;
@@ -39,7 +41,7 @@ export function createFx(GFX, scene, world) {
       const p = pool[(cursor + n) % MAX];
       if (p.live) continue;
       cursor = (cursor + n + 1) % MAX;
-      Object.assign(p, { x, y, z, scale: size, kind: material === flameMat ? 2 : material === blackMat ? 1 : 0, age: 0, life, vx, vy: up, vz, size, grow, live: true });
+      Object.assign(p, { x, y, z, scale: size, kind: material === mistMat ? 3 : material === flameMat ? 2 : material === blackMat ? 1 : 0, age: 0, life, vx, vy: up, vz, size, grow, live: true });
       return p;
     }
     return null;
@@ -49,6 +51,8 @@ export function createFx(GFX, scene, world) {
     group, effects,
     /** Lights a fire for a few seconds at (x, z). */
     burn(x, z) { fires.push({ x, z, y: heightAt(world, x, z), t: 0, dur: 11 }); },
+    /** A wisp of grave-mist rising off one of the dead, up through the trees. */
+    mist(x, y, z) { puff(x + (Math.random() - 0.5) * 0.4, y + 0.3, z + (Math.random() - 0.5) * 0.4, { life: 3.6, size: 0.12, up: 0.8, grow: 2.4, material: mistMat }); },
     /** A burst of dust or sparkle where something is done: a building finished. */
     dust(x, y, z) { for (let k = 0; k < 9; k++) puff(x + (hash2(k, 1, Math.floor(x)) - 0.5) * 0.9, y + 0.1, z + (hash2(k, 2, Math.floor(z)) - 0.5) * 0.9, { life: 1.6, size: 0.1, up: 0.3, grow: 2.4, vx: (hash2(k, 3, 5) - 0.5) * 0.5, vz: (hash2(k, 4, 5) - 0.5) * 0.5 }); },
     /**

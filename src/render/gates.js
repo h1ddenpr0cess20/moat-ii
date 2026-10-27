@@ -13,7 +13,8 @@ import { freeTree } from './dispose.js';
  * a bridge of its own to its courtyard.
  */
 
-const STONE = ['#a8a090', '#9a9283', '#b4ac9a', '#8f887a'];
+// The stone of the castle's bridges is the castle's: black with age and damp.
+const STONE = ['#5a5560', '#504b56', '#615b66', '#4a4650'];
 
 /** A deck of planks `len` long, `width` wide, with a plank's lines drawn across it. Along local x from x0 to x1. */
 function deck(m, x0, x1, y, width, col = PALETTE.wood[0]) {

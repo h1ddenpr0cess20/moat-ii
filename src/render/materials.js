@@ -58,12 +58,12 @@ export function createMaterials(GFX) {
 const NO_SHADOW = new Set(['glow', 'glass', 'flame', 'trim']);
 export const castsShadow = (name) => !NO_SHADOW.has(name);
 
-/** The leaves' colors through the year: spring, summer, autumn, and what is left in winter. */
+/** The leaves' colors through the year: a sallow spring, a dark summer, an autumn of pumpkin orange, rust and blood, and what is left in winter. */
 const LEAVES = {
-  leafA: ['#a4d05a', '#5f9a3a', '#dc8a2a', '#6a5a44'],
-  leafB: ['#b9de6c', '#78b043', '#e8c53c', '#7a6a50'],
-  leafC: ['#92c656', '#4f8a34', '#c9452a', '#5a4a3a'],
-  needle: ['#2f6a3c', '#285c33', '#27583a', '#c8dce4'],
+  leafA: ['#8aa850', '#46703a', '#e0701e', '#4a3a30'],
+  leafB: ['#9ab45c', '#54783e', '#e8a024', '#5a4836'],
+  leafC: ['#7e9c4c', '#3e6232', '#a8241c', '#3e2e2a'],
+  needle: ['#1f4a32', '#1c4430', '#1e3e30', '#a8b8c4'],
 };
 
 /**

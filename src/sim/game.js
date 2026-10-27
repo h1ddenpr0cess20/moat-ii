@@ -4,12 +4,13 @@ import { allocate, assignFields, capacity, refresh, weekWork } from './economy.j
 import { computeCoverage } from './coverage.js';
 import { births, mood } from './people.js';
 import { construction, grow } from './growth.js';
-import { fires, merchants, plague, raids, ranks, tribute, weather } from './events.js';
+import { merchants, raids, ranks, tribute, weather, wreck } from './events.js';
+import { hallows, monsters } from './monsters.js';
 
 /**
  * One week at a time. `step` is the whole simulation: who works, what is made
- * and eaten, who is born and who dies, what is built, and whatever the world
- * throws at the barony.
+ * and eaten, who is born and who dies, what is built, and whatever crawls out
+ * of the dark at the barony.
  */
 
 /** Makes a game and gives the lord a hamlet to start from. */
@@ -40,8 +41,8 @@ export function step(game) {
   computeCoverage(game);
   grow(game);
   merchants(game);
-  fires(game);
-  plague(game);
+  monsters(game, { wreck });
+  hallows(game);
   raids(game);
   tribute(game);
   ranks(game);
@@ -54,4 +55,5 @@ export * from './calendar.js';
 export { newGame } from './state.js';
 export { capacity } from './economy.js';
 export { defenseOf, threatOf } from './events.js';
+export { MONSTERS, huntChance } from './monsters.js';
 export { headcount, housingCap } from './people.js';

@@ -50,14 +50,14 @@ test('a named save is loaded by making it the game in play', () => {
   assert.equal(saves.current().seed, 'elm');
   assert.ok(saves.restore(kept.id));
   assert.equal(saves.current().seed, 'oak');
-  assert.equal(store.getItem('moat.wards'), '11');
+  assert.equal(store.getItem('bloodmoat.wards'), '11');
   assert.ok(saves.currentAt() > 0);
   assert.equal(saves.restore('gone'), false);
 });
 
 test('the game in play is where it always was, so old saves still continue', () => {
   const store = memoryStore();
-  store.setItem('moat.save.v1', JSON.stringify(realm('old')));
+  store.setItem('bloodmoat.save.v1', JSON.stringify(realm('old')));
   const saves = createSaves(store);
   assert.equal(saves.current().seed, 'old');
   assert.equal(saves.currentAt(), 0);
@@ -75,5 +75,5 @@ test('there is room for so many saves, and a full store is said, not hidden', ()
   assert.ok(tight.save(realm('fits')));
   assert.equal(tight.save({ ...realm('too big'), pad: 'x'.repeat(500) }), null);
   assert.equal(tight.list().length, 1);
-  assert.equal(small.keys().filter((k) => k.startsWith('moat.save.')).length, 1, 'a save that did not fit leaves nothing behind');
+  assert.equal(small.keys().filter((k) => k.startsWith('bloodmoat.save.')).length, 1, 'a save that did not fit leaves nothing behind');
 });

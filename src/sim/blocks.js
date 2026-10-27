@@ -19,7 +19,7 @@ import { idx, inb } from '../world/world.js';
  *
  * What a good block earns the realm is in `bonus` (see `blockBonus`): coin
  * from its homes, rooms in the courtyards, calmer streets, houses that rise
- * sooner, fires that do not spread, and the heart's services reaching every
+ * sooner, monsters caught sooner in its streets, and the heart's services reaching every
  * door in the ring.
  */
 
@@ -35,7 +35,8 @@ export const HEARTS = Object.freeze({
   castle: { name: 'Castle Close', fine: 0.7, why: 'the lord’s walls at its heart' },
   well: { name: 'Wellside Close', fine: 0.4, why: 'clean water and a bucket in reach' },
   tavern: { name: 'Tavern Court', fine: 0.45, why: 'a fire and a song at the middle' },
-  healer: { name: 'Physic Court', fine: 0.45, why: 'herbs and a healer in reach' },
+  healer: { name: 'Physic Court', fine: 0.45, why: 'herbs, garlic and a hedge witch in reach' },
+  graveyard: { name: 'Churchyard Close', fine: 0.3, why: 'the dead at rest at its middle' },
   watchtower: { name: 'Watch Court', fine: 0.35, why: 'a tower that sees the whole street' },
   barracks: { name: 'Barrack Yard', fine: 0.3, why: 'men-at-arms in the yard' },
   // The hearts an industrial block wants: somewhere to store, to mill, to forge.
@@ -288,7 +289,7 @@ export function blockReport(block) {
     perks.push({ icon: 'tax', text: `Its homes pay ${pct(0.18 * q)} more tax` });
     perks.push({ icon: 'home', text: `Courtyard rooms: ${(block.cap * 0.12 * q).toFixed(1)} more people housed` });
     perks.push({ icon: 'happy', text: `Happier folk: up to +${(7 * q).toFixed(1)} on the town’s mood in proportion` });
-    perks.push({ icon: 'fire', text: `Fires spread ${pct(0.5 * q)} less, and start ${pct(0.3 * q)} less often` });
+    perks.push({ icon: 'fire', text: `Neighbors with torches: monsters in its streets are put down up to ${pct(0.3 * q)} more often` });
     perks.push({ icon: 'build', text: 'Houses here rise a level sooner' });
     if (block.shops) perks.push({ icon: 'gold', text: `Shops in the ring sell ${pct(0.3 * q)} more` });
     if (block.works) perks.push({ icon: 'build', text: `Smallholdings and workshops in the ring make ${pct(0.25 * q)} more` });

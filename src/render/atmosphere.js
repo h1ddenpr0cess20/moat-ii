@@ -23,13 +23,18 @@ export function rainAt(week, seed) {
   return hash2(Math.floor(week / 3), season, seed) < p;
 }
 
+/**
+ * The film: the horror picture's stock (madness-engine/moods/horror), which makes everyone look a little dead,
+ * let off a touch so the town can still be read; autumn warms to the orange of a lantern, winter goes to bone.
+ */
 const FILMS = [
-  'saturate(1.1) contrast(1.03) brightness(1.03)',
-  'saturate(1.12) contrast(1.05)',
-  'saturate(1.14) sepia(0.14) contrast(1.06) brightness(1.01)',
-  'saturate(0.82) contrast(1.06) brightness(1.04) hue-rotate(-6deg)',
+  'saturate(0.8) hue-rotate(-8deg) contrast(1.1) brightness(1.02)',
+  'saturate(0.78) hue-rotate(-10deg) contrast(1.12) brightness(1.02)',
+  'saturate(0.95) sepia(0.18) hue-rotate(-6deg) contrast(1.12) brightness(1.0)',
+  'saturate(0.6) hue-rotate(-12deg) contrast(1.12) brightness(1.04)',
 ];
-const VIGNETTE = 'radial-gradient(ellipse at center, transparent 58%, rgba(10,16,28,0.34) 100%)';
+const VIGNETTE = 'radial-gradient(ellipse at center, transparent 50%, rgba(8,2,12,0.55) 100%)';
+const GRAIN = 0.05;
 
 export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water, domes, fx, seed }) {
   const { mat } = materials;
@@ -41,7 +46,9 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
   stage.renderer.domElement.style.transition = 'filter 1.5s linear';
   let overcast = 0;
   let slow = 0, first = true, flicker = 0;
-  const state = { night: 0, day: 1, rain: false, snow: 0, season: 1, tod: 0.4 };
+  // Lightning in a storm: a flash that dies away, and the clock to the next one.
+  let flash = 0, nextBolt = 6, bolts = 0;
+  const state = { night: 0, day: 1, rain: false, snow: 0, season: 1, tod: 0.4, flash: 0, bolts: 0 };
 
   const atm = {
     state,
@@ -66,12 +73,20 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
       const rain = rainAt(week, seed);
       overcast += ((rain ? 1 : 0) - overcast) * Math.min(1, dt * 0.8);
       const dim = 1 - 0.38 * overcast;
+      // A storm throws lightning now and then: a white flash over everything, twice in quick succession as often as not.
+      nextBolt -= dt;
+      if (overcast > 0.6 && nextBolt <= 0) {
+        flash = 1;
+        bolts++;
+        nextBolt = Math.random() < 0.4 ? 0.18 : 5 + Math.random() * 12;
+      }
+      flash = Math.max(0, flash - dt * 5);
       sunDir.set(...L.dir);
       stage.key.color.setRGB(...L.key);
-      stage.key.intensity = L.keyIntensity * dim * (season === 3 ? 0.92 : 1);
+      stage.key.intensity = L.keyIntensity * dim * (season === 3 ? 0.92 : 1) + flash * 2.6;
       stage.hemi.color.setRGB(L.hemiSky[0], L.hemiSky[1], L.hemiSky[2]);
       stage.hemi.groundColor.setRGB(...L.hemiGround);
-      stage.hemi.intensity = L.hemiIntensity * (0.9 + 0.2 * overcast);
+      stage.hemi.intensity = L.hemiIntensity * (0.9 + 0.2 * overcast) + flash * 1.4;
       domes.set(L.dusk * 0.95, L.night);
       if (backdrop) {
         const g = 1 - 0.38 * overcast;
@@ -98,11 +113,11 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
       if (key !== filmKey) {
         filmKey = key;
         const base = FILMS[season];
-        const night = L.night > 0.5 ? ' brightness(1.12) saturate(0.9)' : '';
-        const gray = overcast > 0.5 ? ' saturate(0.85)' : '';
-        stage.film.set({ filter: base + night + gray, vignette: VIGNETTE, grain: null, ui: null });
+        const night = L.night > 0.5 ? ' brightness(1.18) saturate(0.85)' : '';
+        const gray = overcast > 0.5 ? ' saturate(0.8)' : '';
+        stage.film.set({ filter: base + night + gray, vignette: VIGNETTE, grain: GRAIN, ui: null });
       }
-      Object.assign(state, { night: L.night, day: L.day, rain: rain && season !== 3, snow, season, tod: clock, overcast });
+      Object.assign(state, { night: L.night, day: L.day, rain: rain && season !== 3, snow, season, tod: clock, overcast, flash, bolts });
     },
   };
   return atm;

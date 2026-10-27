@@ -3,11 +3,14 @@ import { ZONE_ID } from '../catalog.js';
 import { hash2 } from '../rng.js';
 import { HV, SUB, heightAt, idx } from '../world/world.js';
 import { Mesher, partGeometry } from 'madness-engine/mesher';
+import { fieldStage } from './decals.js';
+import { cornTile, deadTree, patchTile, scarecrow } from './halloween.js';
 import { freeInstances } from './dispose.js';
 
 /**
  * The forests and what grows in them: oaks, birches and pines standing in the
- * woodland tiles, boulders on the outcrops, fruit trees in the orchards. Each
+ * woodland tiles (and dead trees among them), boulders on the outcrops, apple
+ * trees in the orchards, and the corn and pumpkins in the fields. Each
  * kind of tree is made once and sits on the graphics card once; a chunk only
  * lists where its copies stand (eight numbers a tree), and draws every copy of
  * a kind in one call. Far from the camera a cheaper set of the same trees is
@@ -36,7 +39,7 @@ function blob(m, x, y, z, rx, ry, rz, mat, detail, seed, lump = 0.24) {
 
 /** The trees, made once: `{ lod0, lod1 }` for each kind and variant, each a template of parts by material. */
 export function buildTemplates() {
-  const out = { oak: [], birch: [], pine: [], fruit: {}, boulder: [], ore: [] };
+  const out = { oak: [], birch: [], pine: [], dead: [], fruit: {}, boulder: [], ore: [], corn: [], patch: [], scarecrow: null };
   const make = (fn) => {
     const hi = new Mesher(), lo = new Mesher();
     fn(hi, true);
@@ -97,16 +100,28 @@ export function buildTemplates() {
       m.bough('needle', 0, 0.22 + (hi ? 0.95 : 0.88) + 0.12, 0, 0.1, 0.3, hi ? 8 : 5, '#e0e0e0', { seed: v });
     }));
   }
-  for (const [name, season] of [['spring', '#f6d8e8'], ['summer', null], ['autumn', '#d8402a'], ['winter', null]]) {
+  for (let v = 0; v < 3; v++) out.dead.push(make((m, hi) => deadTree(m, v, hi)));
+  // Apple trees: old and gnarled, the trunk leaning and forking. Blossom in spring, small green apples in summer, red ones in the autumn and the windfalls under them.
+  for (const [name, apple, n] of [['spring', '#f6dce4', 12], ['summer', '#8aa83a', 10], ['autumn', '#c0201a', 16], ['winter', null, 0]]) {
     out.fruit[name] = [0, 1].map((v) => make((m, hi) => {
-      m.cylinder('bark', 0, -0.05, 0, 0.035, 0.055, 0.34, hi ? 6 : 4, '#5a3e26', { smooth: false });
-      blob(m, 0, 0.5, 0, 0.3, 0.26, 0.3, v ? 'leafB' : 'leafA', hi ? 2 : 1, v + 9);
-      if (hi && season) for (let k = 0; k < 9; k++) {
-        const a = k * 2.4 + v, d = 0.18 + 0.1 * hash2(k, v, 4);
-        m.sphere('plain', Math.cos(a) * d, 0.42 + 0.2 * hash2(k, 3, v), Math.sin(a) * d, 0.026, 0.026, 0.026, season, { detail: 0 });
+      const lean = v ? 0.06 : -0.05;
+      m.cylinder('bark', 0, -0.05, 0, 0.04, 0.065, 0.24, hi ? 6 : 4, '#4a3624', { smooth: false });
+      m.beam('bark', [0, 0.18, 0], [lean + 0.08, 0.42, 0.04], 0.045, '#4a3624');
+      m.beam('bark', [0, 0.18, 0], [lean - 0.1, 0.4, -0.05], 0.04, '#4a3624');
+      blob(m, lean, 0.5, 0, 0.3, 0.24, 0.3, v ? 'leafB' : 'leafA', hi ? 2 : 1, v + 9);
+      if (hi && apple) for (let k = 0; k < n; k++) {
+        const a = k * 2.4 + v, d = 0.2 + 0.1 * hash2(k, v, 4);
+        m.sphere('plain', lean + Math.cos(a) * d, 0.36 + 0.24 * hash2(k, 3, v), Math.sin(a) * d, 0.022, 0.022, 0.022, apple, { detail: 0 });
       }
+      if (hi && name === 'autumn') for (let k = 0; k < 5; k++) m.sphere('plain', (hash2(k, v, 7) - 0.5) * 0.6, 0.015, (hash2(v, k, 8) - 0.5) * 0.6, 0.02, 0.018, 0.02, k % 2 ? '#8a1a14' : '#6a3a1a', { detail: 0 });
     }));
   }
+  // The crops, by stage of the year (1 to 4; 0 and 5 are bare earth) and variant.
+  for (let stage = 0; stage <= 4; stage++) {
+    out.corn.push(stage ? [0, 1, 2].map((v) => make((m, hi) => cornTile(m, stage, v, hi))) : null);
+    out.patch.push(stage ? [0, 1, 2].map((v) => make((m, hi) => patchTile(m, stage, v, hi))) : null);
+  }
+  out.scarecrow = make((m) => scarecrow(m, 0, 0));
   // Outcrops: a heap of knocked-about rock, a big one with smaller ones and chips against its foot, each variant its own color and shape.
   const GRAY = [['#7a756b', '#6a655d', '#8a8478'], ['#8a8478', '#756f66', '#7f796c'], ['#6a655d', '#5c5851', '#7a756b'], ['#7f796c', '#8c8676', '#6e695f']];
   const DARK = [['#5e5a52', '#4e4a44', '#6c675e'], ['#6c675e', '#58544c', '#625c54'], ['#4e4a44', '#5e5a52', '#403c38'], ['#625c54', '#6c675e', '#54504a']];
@@ -165,8 +180,28 @@ export function createTrees(GFX, world, materials, scene) {
   const group = new GFX.Group();
   group.name = 'trees';
   scene.add(group);
-  const chunks = Array.from({ length: CHUNKS * CHUNKS }, (_, i) => ({ i, lod0: null, lod1: null, built: false, near: false, season: -1, orchard: false }));
+  const chunks = Array.from({ length: CHUNKS * CHUNKS }, (_, i) => ({ i, lod0: null, lod1: null, built: false, near: false, season: -1, orchard: false, crops: false }));
+  let cal = { season: 1, weekInSeason: 0 };
   const world_ = world;
+
+  /** The corn or the pumpkins on a field tile, as far on as the year and the tile's crop have them. */
+  const stampCrop = (b0, b1, x, y, zone, cal) => {
+    const stage = fieldStage(zone, world_.crop[idx(x, y)], cal);
+    if (stage < 1 || stage > 4) return;
+    const corn = zone === ZONE_ID.wheat;
+    const wx = x + 0.5, wz = y + 0.5;
+    const wy = heightAt(world_, wx, wz) - 0.01;
+    const yaw = Math.floor(hash2(x, y, 81) * 4) * (Math.PI / 2);
+    // Now and then a scarecrow stands in the corn, keeping the crows off.
+    if (corn && stage >= 2 && hash2(x, y, 83) < 0.035) {
+      b0.stamp(T.scarecrow.lod0, wx, wy, wz, hash2(x, y, 85) * 6.28, 1);
+      b1.stamp(T.scarecrow.lod1, wx, wy, wz, hash2(x, y, 85) * 6.28, 1);
+      return;
+    }
+    const t = (corn ? T.corn : T.patch)[stage][(x * 5 + y * 3) % 3];
+    b0.stamp(t.lod0, wx, wy, wz, yaw, 1);
+    b1.stamp(t.lod1, wx, wy, wz, yaw, 1);
+  };
 
   const stampTile = (b0, b1, x, y, orchard, season) => {
     const i = idx(x, y);
@@ -184,6 +219,7 @@ export function createTrees(GFX, world, materials, scene) {
         let kind;
         if (alt > 3.4 || r < 0.2) kind = T.pine[(x + y + k) % 4];
         else if (r < 0.34) kind = T.birch[(x * 3 + y + k) % 3];
+        else if (r < 0.46) kind = T.dead[(x + y * 3 + k) % 3];
         else kind = T.oak[(x * 7 + y * 3 + k) % 6];
         const tint = [0.9 + 0.2 * hash2(x, y + k, 29), 0.9 + 0.2 * hash2(x + 1, y, 31), 0.9 + 0.2 * hash2(x, y, 37 + k)];
         b0.stamp(kind.lod0, wx, wy, wz, yaw, s, tint);
@@ -217,12 +253,14 @@ export function createTrees(GFX, world, materials, scene) {
     const c = chunks[i];
     disposeOf(c);
     const b0 = new Planting(), b1 = new Planting();
-    let orchard = false;
+    let orchard = false, crops = false;
     for (let y = cy * CHUNK; y < (cy + 1) * CHUNK; y++) {
       for (let x = cx * CHUNK; x < (cx + 1) * CHUNK; x++) {
         const t = idx(x, y);
-        const isOrchard = world_.zone[t] === ZONE_ID.orchard && !world_.bld[t];
+        const zone = world_.zone[t];
+        const isOrchard = zone === ZONE_ID.orchard && !world_.bld[t];
         if (isOrchard) orchard = true;
+        if ((zone === ZONE_ID.wheat || zone === ZONE_ID.veg) && !world_.bld[t] && !world_.road[t]) { crops = true; stampCrop(b0, b1, x, y, zone, cal); continue; }
         if (world_.tree[t] > 0 || world_.ground[t] === GROUND.ROCK || world_.ground[t] === GROUND.ORE || isOrchard) stampTile(b0, b1, x, y, isOrchard, season);
       }
     }
@@ -265,12 +303,15 @@ export function createTrees(GFX, world, materials, scene) {
     c.built = true;
     c.season = season;
     c.orchard = orchard;
+    c.crops = crops;
   };
 
   return {
     group,
-    /** Builds what has changed. `season` colors the orchards' blossom and fruit. */
-    sync(season, budget = 1) {
+    /** Builds what has changed. `calendar` colors the orchards' blossom and fruit, and grows the crops. */
+    sync(calendar, budget = 1) {
+      cal = calendar;
+      const { season } = calendar;
       let n = 0;
       for (const i of [...world_.dirty.trees]) {
         world_.dirty.trees.delete(i);
@@ -281,8 +322,15 @@ export function createTrees(GFX, world, materials, scene) {
         if (c.built && c.orchard && c.season !== season) { build(c.i, season); if (++n >= budget) return; }
       }
     },
+    /** The crops change with the year: rebuild the chunks with fields in them. */
+    refreshCrops(calendar) {
+      cal = calendar;
+      for (const c of chunks) if (c.crops) world_.dirty.trees.add(c.i);
+    },
     /** Builds every chunk that has not been, the nearest first. */
-    async buildAll(season, near, progress = () => {}) {
+    async buildAll(calendar, near, progress = () => {}) {
+      cal = calendar;
+      const { season } = calendar;
       const order = chunks.map((c) => c.i).sort((a, b) => Math.hypot(((a % CHUNKS) + 0.5) * CHUNK - near[0], (Math.floor(a / CHUNKS) + 0.5) * CHUNK - near[1]) - Math.hypot(((b % CHUNKS) + 0.5) * CHUNK - near[0], (Math.floor(b / CHUNKS) + 0.5) * CHUNK - near[1]));
       let n = 0;
       for (const i of order) {

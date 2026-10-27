@@ -7,7 +7,7 @@
  * read once and taken out of it.
  */
 
-const KEY = 'moat.launch.v1';
+const KEY = 'bloodmoat.launch.v1';
 /** What the address may carry that is about which game, not how to look at it. */
 const GAME = ['new', 'load', 'play', 'seed', 'difficulty', 'size', 'disasters'];
 

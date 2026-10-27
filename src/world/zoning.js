@@ -25,7 +25,8 @@ export function setZone(world, x, y, zone) {
     if (!inb(x, y) || !world.zone[i] || world.bld[i]) return -1;
     world.zone[i] = 0;
     world.crop[i] = 0;
-    touch(world, 'flat', x, y);
+    // The trees layer draws the orchards and the crops standing in the fields.
+    touch(world, ['flat', 'trees'], x, y);
     return 0;
   }
   if (zoneBlocked(world, x, y)) return -1;
@@ -35,7 +36,7 @@ export function setZone(world, x, y, zone) {
   const gain = clearTrees(world, x, y);
   world.zone[i] = id;
   world.crop[i] = 0;
-  touch(world, ['flat', 'ground'], x, y);
+  touch(world, ['flat', 'ground', 'trees'], x, y);
   return gain;
 }
 

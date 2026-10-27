@@ -11,6 +11,7 @@ import { createDecals } from './decals.js';
 import { createFx } from './effects.js';
 import { createGates } from './gates.js';
 import { createMaterials } from './materials.js';
+import { createMonsters } from './monsters.js';
 import { createOverlays } from './overlays.js';
 import { createSkyDomes, paintDay, paintReflections } from './sky.js';
 import { createTerrain } from './terrain.js';
@@ -31,7 +32,7 @@ export async function createScene({ host, game, progress = () => {} }) {
   const day = paintDay();
   const stage = await createStage(host, {
     lens: { distance: 12, fov: 34 }, view: viewDef.createView(), sky: day, room: paintReflections(day),
-    lights: { key: { from: sunDir }, fill: null }, shadowSize: 2048, backdrop: '#9fb8c8', label: 'moat',
+    lights: { key: { from: sunDir }, fill: null }, shadowSize: 2048, backdrop: '#4a4458', label: 'bloodmoat',
   });
   useRenderer(stage.renderer);
   progress(0.04, 'Raising the land');
@@ -47,13 +48,14 @@ export async function createScene({ host, game, progress = () => {} }) {
   const overlays = createOverlays(GFX, world, stage.scene);
   const camera = createCamera({ GFX, stage, world, viewDef, dom: stage.renderer.domElement });
   const atmosphere = createAtmosphere({ GFX, stage, sunDir, materials, terrain, water, domes, fx, seed: world.seed });
+  const monsters = createMonsters({ GFX, scene: stage.scene, game, world, atmosphere });
 
   const cal0 = calendar(game.week);
   water.build();
   progress(0.08, 'Painting the fields and the forest floor');
   await terrain.paintAll([CENTER, CENTER], (f) => progress(0.08 + f * 0.55, 'Painting the fields and the forest floor'));
   progress(0.64, 'Planting trees');
-  await trees.buildAll(cal0.season, [CENTER, CENTER], (f) => progress(0.64 + f * 0.2, 'Planting trees'));
+  await trees.buildAll(cal0, [CENTER, CENTER], (f) => progress(0.64 + f * 0.2, 'Planting trees'));
   progress(0.86, 'Laying the roads and raising the houses');
   trees.updateLod(stage.target.x, stage.target.z, 30);
   decals.refreshFields(cal0);
@@ -65,7 +67,7 @@ export async function createScene({ host, game, progress = () => {} }) {
   const castleY = () => heightAt(world, CENTER, CENTER);
   const unsubscribe = [
     game.on('week', () => {
-      if (game.week % 4 === 0) decals.refreshFields(calendar(game.week));
+      if (game.week % 4 === 0) { decals.refreshFields(calendar(game.week)); trees.refreshCrops(calendar(game.week)); }
       buildings.setCastleWork(Boolean(game.castleWork), castleY());
     }),
     game.on('built', ({ building: b }) => {
@@ -74,7 +76,12 @@ export async function createScene({ host, game, progress = () => {} }) {
     }),
     game.on('placed', ({ building: b }) => { if (b.type === 'gatehouse') gates.refresh(); }),
     game.on('demolished', ({ building: b }) => { if (b.type === 'gatehouse') gates.refresh(); }),
-    game.on('fire', ({ at, building: b }) => { fx.burn(at[0], at[1]); if (b.type === 'gatehouse') gates.refresh(); }),
+    // Torn down by the dead, it burns from the torches it had in it; a house left to a ghost only falls in, in a cloud of dust.
+    game.on('wreck', ({ at, building: b, cause }) => {
+      if (cause === 'haunted') fx.dust(at[0], heightAt(world, at[0], at[1]), at[1]);
+      else fx.burn(at[0], at[1]);
+      if (b.type === 'gatehouse') gates.refresh();
+    }),
     game.on('annexed', () => gates.refresh()),
     game.on('bridge', () => gates.refresh()),
     game.on('castleStart', () => buildings.setCastleWork(true, castleY())),
@@ -87,7 +94,7 @@ export async function createScene({ host, game, progress = () => {} }) {
   let time = 0;
 
   const scene = {
-    GFX, stage, camera, viewDef, materials, terrain, water, trees, decals, buildings, gates, fx, overlays, atmosphere,
+    GFX, stage, camera, viewDef, materials, terrain, water, trees, decals, buildings, gates, fx, overlays, atmosphere, monsters,
     /** Where, in the sun's day, the game is: how far through the current week (0 to 1). */
     weekFrac: 0,
     /** The game stands still: the world's own motion stops. */
@@ -102,7 +109,7 @@ export async function createScene({ host, game, progress = () => {} }) {
       const cal = calendar(game.week);
       terrain.sync(1);
       water.sync();
-      trees.sync(cal.season, 1);
+      trees.sync(cal, 1);
       decals.sync(cal, 3);
       buildings.sync(1);
       buildings.restage(4);
@@ -115,6 +122,7 @@ export async function createScene({ host, game, progress = () => {} }) {
       overlays.update(dt);
       const frac = Math.min(1, scene.weekFrac);
       atmosphere.update(live, { week: game.week, frac });
+      monsters.update(dt, { frac, live });
       const cold = cal.season === 3 ? 1.7 : cal.season === 2 ? 1.2 : 0.8;
       fx.update(live, { emitters, near: [stage.target.x, stage.target.z], reach: 20 + 4 * camera.distance, rate: 0.5 * cold, wind: [0.35, 0.12], time });
     },

@@ -15,7 +15,7 @@ import { dateText } from './sim/calendar.js';
 export const MAX = 8;
 export const AUTO = 'auto';
 
-const keyOf = (id) => (id === AUTO ? 'moat.save.v1' : `moat.save.${id}.v1`);
+const keyOf = (id) => (id === AUTO ? 'bloodmoat.save.v1' : `bloodmoat.save.${id}.v1`);
 
 /** What the list says of a save. */
 function describe(data, id, name, at) {
@@ -24,8 +24,8 @@ function describe(data, id, name, at) {
 }
 
 export function createSaves(store = globalThis.localStorage) {
-  const index = saveSlot('moat.saves.v1', store);
-  const autoAt = saveSlot('moat.saved-at.v1', store);
+  const index = saveSlot('bloodmoat.saves.v1', store);
+  const autoAt = saveSlot('bloodmoat.saved-at.v1', store);
   const slot = (id) => saveSlot(keyOf(id), store);
 
   const named = () => { const list = index.read(); return Array.isArray(list) ? list : []; };
@@ -80,7 +80,7 @@ export function createSaves(store = globalThis.localStorage) {
       const data = slot(id).read();
       if (!data) return false;
       if (!this.saveCurrent(data)) return false;
-      try { store?.setItem('moat.wards', String(data.mapWards ?? 7)); } catch { /* the size will be guessed */ }
+      try { store?.setItem('bloodmoat.wards', String(data.mapWards ?? 7)); } catch { /* the size will be guessed */ }
       return true;
     },
   };

@@ -14,13 +14,13 @@ export const defaultTrade = () => Object.fromEntries(Object.keys(PRICES).map((g)
  * standing orders. `emit` tells whoever is listening (the interface, the
  * sound) that something happened.
  */
-export function newGame({ seed = 'moat', difficulty = 'normal', disasters = true } = {}) {
+export function newGame({ seed = 'bloodmoat', difficulty = 'normal', disasters = true } = {}) {
   const world = snapshot(newWorld(seed));
   const game = {
     version: 1,
     seed: world.seedText,
     difficulty,
-    /** Fires, plague and raiders: off, the barony only has the weather and the king to answer to. */
+    /** Monsters and the hordes of the dead: off, the barony only has the weather and the Elder to answer to. */
     disasters,
     world,
     week: 0,
@@ -38,10 +38,16 @@ export function newGame({ seed = 'moat', difficulty = 'normal', disasters = true
     prio: {},
     nextRaid: difficulty === 'peaceful' ? Infinity : 110 + Math.floor(mulberry32(world.seed)() * 30),
     raids: { won: 0, lost: 0 },
-    /** The gate the next raid is marching on, once it has been seen. */
+    /** The gate the next horde of the dead is shambling toward, once it has been seen. */
     raidGate: null,
+    /** What is abroad in the barony by night (see monsters.js), and when the next comes out. */
+    monsters: [],
+    monsterId: 0,
+    monstersSlain: 0,
+    nextMonster: 30 + Math.floor(mulberry32(world.seed ^ 0x5eed)() * 16),
     /** Gold taken in taxes and trade since the king's collector last came: his tithe is a share of it. */
     takings: 0,
+    /** Weeks left of the wasting the vampires leave behind them. */
     plague: 0,
     weather: { harvest: 1, winter: 1 },
     /** What each good did last week: made and used. */

@@ -23,10 +23,10 @@ const chooseWards = () => {
       const q = params;
       if (q.has('size')) return MAP_SIZES[q.get('size')] ?? MAP_SIZES[DEFAULT_SIZE];
       if (!q.has('new')) {
-        const kept = +globalThis.localStorage?.getItem('moat.wards');
+        const kept = +globalThis.localStorage?.getItem('bloodmoat.wards');
         if (Object.values(MAP_SIZES).includes(kept)) return kept;
         // A save from before maps had sizes was always small.
-        if (globalThis.localStorage?.getItem('moat.save.v1')) return MAP_SIZES.small;
+        if (globalThis.localStorage?.getItem('bloodmoat.save.v1')) return MAP_SIZES.small;
       }
       return MAP_SIZES[DEFAULT_SIZE];
     }

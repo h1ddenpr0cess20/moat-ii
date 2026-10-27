@@ -81,6 +81,10 @@ export function serialize(game) {
     raidGate: game.raidGate ? [game.raidGate.ward, game.raidGate.dir] : null,
     takings: Math.round(game.takings ?? 0),
     plague: game.plague,
+    monsters: game.monsters,
+    monsterId: game.monsterId,
+    monstersSlain: game.monstersSlain,
+    nextMonster: Number.isFinite(game.nextMonster) ? game.nextMonster : null,
     weather: game.weather,
     log: game.log.slice(0, 40),
     gameOver: game.gameOver,
@@ -126,6 +130,7 @@ export function deserialize(data) {
     castleLevel: data.castleLevel, castleWork: data.castleWork, rank: data.rank, trade: { ...defaultTrade(), ...data.trade }, nextMerchant: data.nextMerchant, nextRelief: data.nextRelief ?? 0, nextFirewood: data.nextFirewood ?? 0, prio: data.prio,
     nextRaid: data.nextRaid ?? Infinity, raids: data.raids, plague: data.plague, weather: data.weather, log: data.log, gameOver: data.gameOver, stats: data.stats,
     takings: data.takings ?? 0,
+    monsters: data.monsters ?? [], monsterId: data.monsterId ?? 0, monstersSlain: data.monstersSlain ?? 0, nextMonster: data.nextMonster ?? Infinity,
     raidGate: data.raidGate ? world.gates.find((g) => g.ward === data.raidGate[0] && g.dir === data.raidGate[1]) ?? null : null,
   });
   game.rnd = mulberry32((world.seed ^ 0xa5a5a5a5 ^ Math.imul(data.week + 1, 2654435761)) >>> 0);

@@ -58,9 +58,10 @@ function luminance(texture) {
   return { data: out, w: width, h: height };
 }
 
+/** The colors of a land gone to seed: grass sallow and olive, the forest floor black with rot, the shore a dark stain. */
 const COLORS = {
-  dry: [150, 142, 82], lush: [92, 140, 58], forest: [52, 70, 36], litter: [92, 72, 40], dirt: [134, 102, 66], mud: [66, 52, 38],
-  sand: [210, 192, 146], rock: [134, 128, 120], rockDark: [92, 88, 84], snow: [238, 244, 250], wet: [84, 70, 50], foam: [230, 238, 235], scree: [150, 140, 126],
+  dry: [128, 112, 70], lush: [76, 102, 52], forest: [36, 42, 28], litter: [74, 52, 32], dirt: [110, 84, 58], mud: [52, 40, 32],
+  sand: [146, 132, 108], rock: [112, 106, 104], rockDark: [72, 68, 70], snow: [214, 220, 232], wet: [60, 40, 36], foam: [92, 22, 24], scree: [124, 116, 108],
 };
 
 /** Everything a chunk's painter looks at, gathered once: the tile data with a margin, and the heights. */
@@ -200,8 +201,8 @@ function paint(world, cx, cy, sources, canvas, box = null) {
   ctx.putImageData(image, px0, py0);
 }
 
-/** The seasons' tints on the ground: spring, summer, autumn, winter. */
-export const GROUND_TINT = ['#f3ffd8', '#ffffff', '#f2c690', '#cfdceb'];
+/** The seasons' tints on the ground: spring, summer, autumn (the land's season, long and golden-brown), winter. */
+export const GROUND_TINT = ['#e4ecd0', '#ece8e4', '#f0b886', '#c4ccdc'];
 
 export function createTerrain(GFX, world, materials, scene) {
   const { tex } = materials;

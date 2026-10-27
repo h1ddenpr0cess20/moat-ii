@@ -32,7 +32,7 @@ const HINTS = {
 };
 
 export function createSteward(ctx) {
-  const slot = saveSlot('moat.hints.v1');
+  const slot = saveSlot('bloodmoat.hints.v1');
   const seen = new Set(slot.read() ?? []);
   const el = h('div.panel.steward');
   el.hidden = true;

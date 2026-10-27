@@ -2,7 +2,10 @@ import { CHUNK, CHUNKS } from '../config.js';
 import { heightAt } from '../world/world.js';
 import { Batch } from 'madness-engine/mesher';
 import { castsShadow } from './materials.js';
-import { castleScaffold, modelFor } from './models/index.js';
+import { castleScaffold, modelFor, sizeOf } from './models/index.js';
+import { BUILDINGS } from '../catalog.js';
+import { doorLantern } from './halloween.js';
+import { hash2 } from '../rng.js';
 import { freeTree } from './dispose.js';
 
 /**
@@ -15,6 +18,30 @@ import { freeTree } from './dispose.js';
 
 /** The turn to put a model's front (+z) toward each way a building can face: north, east, south, west. */
 export const YAW = [Math.PI, Math.PI / 2, 0, -Math.PI / 2];
+
+/**
+ * The darkness the realm is built in: what each kind of building's materials are multiplied by. The castle is
+ * black stone and bruise-colored slate with its windows burning red; the walls and towers of the defense are
+ * nearly as grim; the town is only weathered and sooty, and its windows glow the orange of a carved pumpkin.
+ */
+const GLOOM = {
+  castle: { base: [0.36, 0.33, 0.4], glow: [1, 0.16, 0.1], flame: [1, 0.45, 0.35], cloth: [0.75, 0.12, 0.16], metal: [0.6, 0.55, 0.6] },
+  defense: { base: [0.55, 0.52, 0.58], glow: [1, 0.3, 0.16], cloth: [0.75, 0.16, 0.2] },
+  town: { base: [0.8, 0.76, 0.8], glow: [1, 0.62, 0.32] },
+};
+const DEFENSE = new Set(['gatehouse', 'watchtower', 'barracks', 'cathedral', 'chapel']);
+
+/** Carved pumpkins for the doorsteps, a few kinds, made once. */
+const LANTERNS = [0, 1, 2, 3].map((v) => doorLantern(v, true));
+/** Who puts a lantern out: the people's own houses, shops and crofts, and the tavern. */
+const lanternFor = (type) => Boolean(BUILDINGS[type]?.auto) || type === 'tavern';
+const gloomOf = (type) => GLOOM[type === 'castle' ? 'castle' : DEFENSE.has(type) ? 'defense' : 'town'];
+
+/** Stamps a model into a batch, each material darkened as its building's kind is. */
+export function stampGloomy(batch, type, parts, x, y, z, yaw) {
+  const g = gloomOf(type);
+  for (const [name, part] of Object.entries(parts)) batch.acc(name).stamp(part, x, y, z, yaw, 1, g[name] ?? (name === 'glass' ? null : g.base));
+}
 
 export function createBuildings(GFX, world, materials, scene) {
   const { mat } = materials;
@@ -62,7 +89,7 @@ export function createBuildings(GFX, world, materials, scene) {
     const mx = b.x + b.w / 2, mz = b.y + b.d / 2;
     const t = modelFor(b.type, { level: b.level, variant: b.variant, building: true, progress: b.progress });
     const batch = new Batch();
-    batch.stamp(t.parts, mx, heightAt(world, mx, mz), mz, YAW[b.front] ?? 0);
+    stampGloomy(batch, b.type, t.parts, mx, heightAt(world, mx, mz), mz, YAW[b.front] ?? 0);
     const g = new GFX.Group();
     g.name = `buildings site ${b.id}`;
     meshesFor(batch, g);
@@ -84,9 +111,16 @@ export function createBuildings(GFX, world, materials, scene) {
       const t = modelFor(b.type, { level: b.level, variant: b.variant, building: false, progress: b.progress });
       const baseY = heightAt(world, mx, mz);
       const yaw = YAW[b.front] ?? 0;
-      batch.stamp(t.parts, mx, baseY, mz, yaw);
+      stampGloomy(batch, b.type, t.parts, mx, baseY, mz, yaw);
       const sy = Math.sin(yaw), cs = Math.cos(yaw);
       const at = (p) => [mx + p[0] * cs + p[2] * sy, baseY + p[1], mz - p[0] * sy + p[2] * cs];
+      // A lantern on the step, at one front corner or the other, at most doors.
+      if (lanternFor(b.type) && hash2(b.id, 3, 7) < 0.8) {
+        const [w, d] = sizeOf(b.type);
+        const side = hash2(b.id, 5, 7) < 0.5 ? -1 : 1;
+        const p = at([side * (w / 2 - 0.3), 0, d / 2 - 0.1]);
+        batch.stamp(LANTERNS[b.id % LANTERNS.length], p[0], heightAt(world, p[0], p[2]), p[2], yaw + (hash2(b.id, 9, 7) - 0.5) * 0.6);
+      }
       for (const s of t.smoke) { const p = at(s); cell.smoke.push({ at: p, id: b.id, type: b.type, key: `${b.id}:${p[0]}` }); }
       for (const l of t.lights) cell.lights.push({ at: at(l.at), color: l.color, reach: l.reach, id: b.id });
       for (const a of t.anim) {
@@ -97,7 +131,7 @@ export function createBuildings(GFX, world, materials, scene) {
         pivot.position.set(...a.pivot);
         holder.add(pivot);
         const sub = new Batch();
-        sub.stamp(a.parts, 0, 0, 0, 0);
+        stampGloomy(sub, b.type, a.parts, 0, 0, 0, 0);
         meshesFor(sub, pivot);
         g.add(holder);
         cell.anims.push({ pivot, rate: a.rate, kind: a.kind, phase: (b.id * 1.37) % 6.28 });
@@ -179,7 +213,7 @@ export function createBuildings(GFX, world, materials, scene) {
     setCastleWork(on, y) {
       if (on && !scaffold.group) {
         const batch = new Batch();
-        batch.stamp(scaffold.parts, 0, 0, 0, 0);
+        stampGloomy(batch, 'castle', scaffold.parts, 0, 0, 0, 0);
         const g = new GFX.Group();
         meshesFor(batch, g);
         g.position.set(world.size / 2, y, world.size / 2);

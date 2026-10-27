@@ -116,10 +116,10 @@ export function births(game) {
     dead += took;
   }
   game.stats.deaths += dead;
-  if (dead >= 3) game.note(`${dead} died this week${starving > 0.01 ? ' of hunger' : freezing > 0.005 ? ' of the cold' : ill > 0 ? ' of the plague' : ''}.`, 'bad');
+  if (dead >= 3) game.note(`${dead} died this week${starving > 0.01 ? ' of hunger' : freezing > 0.005 ? ' of the cold' : ill > 0 ? ' of the wasting' : ''}.`, 'bad');
   if (game.plague > 0) {
     game.plague--;
-    if (game.plague === 0) game.note('The plague has passed.', 'good');
+    if (game.plague === 0) game.note('The wasting has passed. The bitten are on their feet again, and eating garlic by the bulb.', 'good');
   }
 
   // Left, or arrived.

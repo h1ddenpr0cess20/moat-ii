@@ -12,7 +12,7 @@ import { createUI } from './ui/index.js';
 const host = document.getElementById('game');
 const root = document.getElementById('ui');
 const saves = createSaves();
-const prefs = saveSlot('moat.prefs.v1');
+const prefs = saveSlot('bloodmoat.prefs.v1');
 const randomSeed = () => Math.random().toString(36).slice(2, 8);
 const dev = import.meta.env.DEV;
 
@@ -31,7 +31,7 @@ const loading = {
 const difficulty = params.get('difficulty') ?? 'normal';
 const disasters = params.get('disasters') !== '0';
 const saved = saves.current();
-try { localStorage.setItem('moat.wards', String(WARDS)); } catch { /* no storage, no memory of the size */ }
+try { localStorage.setItem('bloodmoat.wards', String(WARDS)); } catch { /* no storage, no memory of the size */ }
 let game = null;
 let hasSave = false;
 if (saved) {

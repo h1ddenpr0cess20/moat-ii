@@ -43,7 +43,7 @@ function treasury(ctx, body) {
       h('div', {}, h('h3', {}, 'Tax'), slider, label,
         h('p.dim', {}, 'Heavy taxes fill the treasury and empty the town. Under 10% the people are pleased; over it, they grumble, and leave if it goes on.'),
         h('h3', {}, game.rank + 1 >= RANKS.length ? 'Your standing' : `Standing: ${RANKS[game.rank].name}`),
-        game.rank + 1 >= RANKS.length ? h('p', {}, 'You are a Duke, the highest in the land.') : h('div', {}, h('p', {}, `To be made ${rank.name}:`), ...checks.map(([text, ok]) => h('div', { html: `${ok ? '✔' : '✘'} <span class="${ok ? 'good' : 'bad'}">${text}</span>` }))))));
+        game.rank + 1 >= RANKS.length ? h('p', {}, 'You are a Duke of the Night, the highest under the Elder.') : h('div', {}, h('p', {}, `To be made ${rank.name}:`), ...checks.map(([text, ok]) => h('div', { html: `${ok ? '✔' : '✘'} <span class="${ok ? 'good' : 'bad'}">${text}</span>` }))))));
 }
 
 function stores(ctx, body) {

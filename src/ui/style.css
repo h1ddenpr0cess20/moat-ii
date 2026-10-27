@@ -1,13 +1,14 @@
 :root {
-  --wood: #2b1d12;
-  --wood-2: #3e2b19;
-  --wood-3: #5a4128;
-  --edge: #8a6a3c;
-  --parch: #ecdfba;
-  --parch-2: #dccb9c;
-  --ink: #2b1f12;
-  --ink-2: #5a4630;
-  --gold: #e5bc55;
+  /* Black oak and old blood, with pumpkin orange for what is chosen. */
+  --wood: #170e14;
+  --wood-2: #2a1820;
+  --wood-3: #44242e;
+  --edge: #6e2a2c;
+  --parch: #e2d6bc;
+  --parch-2: #cbbb98;
+  --ink: #241618;
+  --ink-2: #5a3c38;
+  --gold: #ec8a34;
   --good: #7cc04a;
   --bad: #e0634d;
   --warn: #efb040;
@@ -53,7 +54,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .btn:hover { filter: brightness(1.18); }
 .btn:active { transform: translateY(1px); }
 .btn[disabled], .btn.off { filter: grayscale(0.7) brightness(0.7); cursor: not-allowed; }
-.btn.gold { background: linear-gradient(180deg, #d8a840, #a47a24); color: #2b1d08; border-color: #4a3208; font-weight: 700; }
+.btn.gold { background: linear-gradient(180deg, #e8782a, #a8461a); color: #1e0c06; border-color: #4a1a08; font-weight: 700; }
 .btn.small { padding: 3px 9px; font-size: 13px; }
 .parch .btn { color: var(--text); }
 
@@ -104,7 +105,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: linear-gradient(180deg, #5d4325, #3a2815); border: 1px solid #170e07; border-radius: 8px; font-size: 11.5px; padding: 2px 0 0;
 }
 .tool:hover { filter: brightness(1.22); }
-.tool.on { background: linear-gradient(180deg, #d9aa44, #96691c); color: #2b1d08; box-shadow: 0 0 0 1px #f0d070 inset, 0 0 14px rgba(240, 200, 90, 0.35); font-weight: 700; }
+.tool.on { background: linear-gradient(180deg, #e8782a, #a8461a); color: #1e0c06; box-shadow: 0 0 0 1px #ffb060 inset, 0 0 14px rgba(255, 130, 40, 0.4); font-weight: 700; }
 .tool kbd {
   position: absolute; top: 2px; right: 4px; font: 600 9.5px var(--serif); opacity: 0.6;
 }
@@ -128,7 +129,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   background: linear-gradient(180deg, #5d4325, #3a2815); border: 1px solid #170e07;
 }
 .opt:hover { filter: brightness(1.22); }
-.opt.on { background: linear-gradient(180deg, #d9aa44, #96691c); color: #2b1d08; font-weight: 700; box-shadow: 0 0 0 1px #f0d070 inset; }
+.opt.on { background: linear-gradient(180deg, #e8782a, #a8461a); color: #1e0c06; font-weight: 700; box-shadow: 0 0 0 1px #ffb060 inset; }
 .opt.locked { opacity: 0.5; }
 .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(0, 0, 0, 0.6); flex: none; }
 .hint { font-size: 13px; color: var(--text-dim); text-align: center; max-width: 560px; }
@@ -242,7 +243,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
   padding: max(12px, env(safe-area-inset-top)) 0 max(12px, env(safe-area-inset-bottom)); overflow-y: auto; overscroll-behavior: contain;
   background: radial-gradient(ellipse at center, rgba(8, 5, 2, 0.1) 30%, rgba(8, 5, 2, 0.75) 100%); }
 .title-screen > * { flex-shrink: 0; }
-.title-screen h1 { font-size: clamp(40px, min(11vw, 15vh), 120px); margin: 0; letter-spacing: 0.14em; font-weight: 700; text-shadow: 0 4px 0 #2b1d12, 0 8px 26px rgba(0, 0, 0, 0.7); color: #f4e4b0; }
+.title-screen h1 small { display: block; font-size: 0.32em; letter-spacing: 0.3em; color: #c8202a; text-shadow: 0 2px 0 #1a0204, 0 0 18px rgba(255, 40, 40, 0.5); }
+.title-screen h1 { font-size: clamp(40px, min(11vw, 15vh), 120px); margin: 0; letter-spacing: 0.14em; font-weight: 700; text-shadow: 0 4px 0 #3a0608, 0 0 30px rgba(200, 20, 20, 0.55), 0 8px 26px rgba(0, 0, 0, 0.8); color: #e8d8c8; }
 .title-screen .tag-line { font-size: clamp(14px, 2.2vw, 19px); color: #ecdfba; max-width: 560px; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9); padding: 0 16px; }
 .title-card { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; width: min(380px, calc(100vw - 24px)); }
 .title-card label { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: 14px; }
@@ -250,7 +252,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .title-card .btn { font-size: 17px; padding: 9px 14px; }
 .loading { position: fixed; inset: 0; z-index: 25; display: grid; place-items: center; background: #120c07; }
 .loading .box { width: min(420px, 80vw); text-align: center; }
-.loading h1 { letter-spacing: 0.16em; font-size: 44px; margin: 0 0 14px; color: #f4e4b0; }
+.loading h1 { letter-spacing: 0.16em; font-size: 44px; margin: 0 0 14px; color: #e8d8c8; }
 .loading .bar { height: 10px; }
 .loading p { color: var(--text-dim); font-size: 14px; }
 

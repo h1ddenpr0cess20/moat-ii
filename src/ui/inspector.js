@@ -171,12 +171,12 @@ export function createInspector(ctx) {
   function showGate(g) {
     const house = g.gatehouse && world.buildings.get(g.gatehouse);
     const parts = [...head(`${EDGES[g.dir][0].toUpperCase() + EDGES[g.dir].slice(1)} gate`, 'A bridge over the moat')];
-    parts.push(h('p', {}, 'Merchants and raiders both come over the bridges. A gatehouse guards it, and gives you a windlass to raise the drawbridge.'));
+    parts.push(h('p', {}, 'Merchants and the dead both come over the bridges. A gatehouse guards it, and gives you a windlass to raise the drawbridge.'));
     parts.push(kv([['Gatehouse', house ? (house.state === 'ready' ? 'Standing' : 'Going up') : 'None'], ['Drawbridge', house && house.state === 'ready' ? (g.open ? 'Down' : 'Raised') : 'Fixed'], ['Defense at this gate', num(defenseOf(game, g), 0)]]));
     const acts = h('div.actions');
     if (!house) acts.append(h('button.btn.gold', { onclick: () => { ctx.tools.set('build', { build: { type: 'gatehouse', front: null } }); } }, 'Build a gatehouse'));
     else if (house.state === 'ready') acts.append(h('button.btn', { onclick: () => { toggleGate(game, g); show(selection); } }, g.open ? 'Raise the drawbridge' : 'Lower the drawbridge'));
-    parts.push(acts, h('p.dim', {}, 'A raised bridge keeps merchants out as well as raiders.'));
+    parts.push(acts, h('p.dim', {}, 'A raised bridge keeps merchants out as well as the dead.'));
     ctx.scene.overlays.clear('select');
     return parts;
   }

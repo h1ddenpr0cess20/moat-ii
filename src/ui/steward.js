@@ -3,7 +3,8 @@ import { h } from './dom.js';
 import { icon } from './icons.js';
 
 /**
- * The steward: an old retainer at the lord's elbow who says what to do next,
+ * The steward: an old retainer at the lord's elbow (a servant of the vampire's
+ * house, as his father was) who says what to do next,
  * once, when it matters. His hints teach the game in the order a lord needs
  * it, and the donut block above all: stamp a ring of homes, leave the heart
  * open, put a green or a well in the middle.
@@ -11,8 +12,8 @@ import { icon } from './icons.js';
 
 const HINTS = {
   welcome: {
-    text: 'My lord, the hamlet is yours. Slide the map with <b>WASD</b> or the <b>right button</b>, turn it with <b>Q</b> and <b>E</b>, and draw in with the wheel. The people want <b>homes along streets</b>, <b>fields</b> and <b>firewood</b>.',
-    touch: 'My lord, the hamlet is yours. Slide the map with a <b>finger</b>, and <b>pinch</b> and <b>twist</b> with two to draw in and turn it. Tap anything to look at it. The people want <b>homes along streets</b>, <b>fields</b> and <b>firewood</b>.',
+    text: 'Good evening, my lord. The hamlet is yours, and the night is young. Slide the map with <b>WASD</b> or the <b>right button</b>, turn it with <b>Q</b> and <b>E</b>, and draw in with the wheel. The people want <b>homes along streets</b>, <b>fields</b> of corn and pumpkins, and <b>firewood</b>.',
+    touch: 'Good evening, my lord. The hamlet is yours, and the night is young. Slide the map with a <b>finger</b>, and <b>pinch</b> and <b>twist</b> with two to draw in and turn it. Tap anything to look at it. The people want <b>homes along streets</b>, <b>fields</b> and <b>firewood</b>.',
     next: 'block',
   },
   block: {
@@ -22,9 +23,11 @@ const HINTS = {
   },
   blockMade: { text: 'A ring of homes will grow around it. Now give it a <b>heart</b>: with the <b>Build</b> tool, set a <b>Village Green</b> in the middle, with a <b>well</b> beside it. A good heart serves every door in the ring, and the block earns a courtyard bonus.' },
   heart: { text: 'A courtyard! The plaque over the block shows its rating. It climbs as the ring fills, and as the heart grows: taxes, rooms, mood and safety all improve. Make another, and join it to the first.' },
-  food: { text: 'The stores are running thin. <b>Zone wheat</b> near a farmstead before the spring, and put a few hands on the plow: a hungry town does not stay.' },
+  food: { text: 'The stores are running thin. <b>Zone corn</b> and a <b>pumpkin patch</b> near a farmstead before the spring, and put a few hands on the plow: a hungry town does not stay.' },
   winter: { text: 'Winter is coming, my lord. The people burn timber to keep warm: see that you have some, and a woodcutter who works. A <b>forester’s lodge</b> plants new woods, so the cutters never run dry.' },
-  raid: { text: 'Raiders have been sighted at the gate, and will be here in three weeks! A <b>gatehouse</b> and a <b>watchtower</b> will hold them. If the walls are weak, your steward will try to pay them off from the treasury, but they come back greedier. They come in the end to the weakest gate.' },
+  raid: { text: 'The dead are walking, my lord, and will be at the gate in three weeks! A <b>gatehouse</b> (raise its drawbridge: they cannot cross the blood) and <b>watchtowers</b> will hold them, and each <b>graveyard</b> keeps some of them in the ground. If the walls are weak, your steward will hire the Order of the Stake from the treasury, but they ask more each time. The dead come to the weakest gate.' },
+  monster: { text: 'Something is loose in the town, my lord. Look for it in the streets: <b>watchtowers</b> and <b>barracks</b> hunt what prowls, the <b>chapel</b> lays ghosts and breaks up covens, and the <b>hedge witch</b> keeps the wasting short. A good <b>courtyard block</b> keeps its streets safer still.' },
+  hallows: { text: 'All Hallows’ Eve is coming at the end of October. Keep <b>pumpkins</b> in the stores (a <b>pumpkin patch</b> grows them) and the people will carve their lanterns and keep the night gladly. Without them they will be afraid, and something always comes out of the dark that night.' },
   moat: { text: 'The treasury is fat. Open the <b>Realm map</b> (<b>M</b>) and widen the moat around another ward: more land, more forest, more stone. A larger castle can hold more wards.' },
   idle: { text: 'There are idle hands in the town. Zone <b>Workshops</b> or <b>Smallholdings</b> (Zones, <b>3</b>), or stamp a block with a ring of them (Blocks, <b>4</b>), and the people will build their own work. A town with work is a happy one.' },
   tools: { text: 'The tools are wearing out, and every trade goes slower without them. Zone some <b>Workshops</b> by a street: carpenters make tools from timber. A smithy makes better ones from iron.' },
@@ -82,5 +85,7 @@ export function createSteward(ctx) {
   let off = false;
   steward.disable = (v) => { off = v; if (v) el.hidden = true; };
   ctx.game.on('warning', () => steward.hint('raid'));
+  ctx.game.on('monster', () => steward.hint('monster'));
+  ctx.game.on('week', ({ week }) => { if (week % 48 === 26) steward.hint('hallows'); });
   return steward;
 }

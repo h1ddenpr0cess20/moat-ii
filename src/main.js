@@ -21,7 +21,7 @@ const loading = {
     const bar = document.getElementById('loading-bar'), label = document.getElementById('loading-text');
     if (bar) bar.style.width = `${Math.round(f * 100)}%`;
     if (label && text) label.textContent = text;
-    document.title = f >= 1 ? 'Moat' : `Moat · ${Math.round(f * 100)}%`;
+    document.title = f >= 1 ? 'Moat II: Blood Moat' : `Blood Moat · ${Math.round(f * 100)}%`;
   },
   done() { document.getElementById('loading')?.remove(); },
 };
@@ -51,7 +51,7 @@ if (pre && dev) {
   for (let w = 0; w < +params.get('week'); w++) step(game);
 }
 
-loading.set(0.02, 'Raising the land');
+loading.set(0.02, 'Raising the dead land');
 const scene = await createScene({ host, game, progress: loading.set });
 const { stage, camera, atmosphere } = scene;
 

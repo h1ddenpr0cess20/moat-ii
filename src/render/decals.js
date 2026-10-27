@@ -163,13 +163,13 @@ function paintFields() {
             if (stage === 3) { plant(['#cfa63e', '#ecd26e'], 5.4); for (let k = 0; k < 90; k++) { ctx.fillStyle = 'rgba(240,215,120,0.6)'; ctx.fillRect(rnd() * S, rnd() * S, 1.4, 1.4); } }
             if (stage === 4) { ctx.strokeStyle = '#c4a766'; ctx.lineWidth = 1.6; for (let r = 0; r < rows; r++) { ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.moveTo(0, r * sp + sp * 0.3); ctx.lineTo(S, r * sp + sp * 0.3); ctx.stroke(); } ctx.setLineDash([]); }
           } else {
-            // Vegetables: round heads in rows.
+            // The pumpkin patch: the vines' leaves in rows under the pumpkins, with an orange one showing here and there.
             const heads = stage === 0 ? 0 : stage === 1 ? 0.5 : stage === 2 ? 0.8 : stage === 3 ? 1 : 0.35;
             if (stage < 5) for (let r = 0; r < rows; r++) for (let k = 0; k < 7; k++) {
               const x = k * 9.4 + 4 + (r % 2) * 3, y = r * sp + sp * 0.3;
-              ctx.fillStyle = stage === 3 ? (rnd() < 0.2 ? '#a64a6a' : '#8ab84e') : '#6aa23a';
+              ctx.fillStyle = stage === 3 ? (rnd() < 0.25 ? '#c8601e' : '#5e8a34') : '#4e7a2e';
               ctx.beginPath(); ctx.arc(x, y, 1.2 + 2.6 * heads, 0, 7); ctx.fill();
-              ctx.fillStyle = 'rgba(210,235,150,0.5)'; ctx.beginPath(); ctx.arc(x - 0.8, y - 0.8, 0.9 * heads + 0.3, 0, 7); ctx.fill();
+              ctx.fillStyle = 'rgba(180,210,120,0.35)'; ctx.beginPath(); ctx.arc(x - 0.8, y - 0.8, 0.9 * heads + 0.3, 0, 7); ctx.fill();
             }
           }
         } else if (crop === 2) {

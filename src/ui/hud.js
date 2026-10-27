@@ -1,5 +1,6 @@
 import { FOODS, RANKS, RESOURCES } from '../catalog.js';
 import { defenseOf, threatOf } from '../sim/events.js';
+import { MONSTERS } from '../sim/monsters.js';
 import { calendar } from '../sim/calendar.js';
 import { headcount, housingCap } from '../sim/game.js';
 import { HOME_WARD } from '../config.js';
@@ -85,16 +86,26 @@ export function createHud(ctx) {
       + (game.blockGain?.mood > 0.2 ? `<div class="row"><span>Courtyard blocks</span><span class="good">+${game.blockGain.mood.toFixed(1)}</span></div>` : '')
       + (game.tax > 0.1 ? `<div class="row"><span>Taxes</span><span class="bad">−${((game.tax - 0.1) * 70).toFixed(0)}</span></div>` : '');
   });
-  // Raiders on the road: a chip that counts down the weeks, and says how the walls would stand. A click looks at the gate.
+  // The dead on the road: a chip that counts down the weeks, and says how the walls would stand. A click looks at the gate.
   const threat = chip('threat', icon('sword', 20), () => {
     const g = game.raidGate;
     const d = defenseOf(game, g), s = threatOf(game);
-    return `<b>Raiders on the road</b><div class="row"><span>Coming to</span><span>${g ? ['the north', 'the east', 'the south', 'the west'][g.dir] + ' gate' : 'the castle'}</span></div>`
+    return `<b>The dead are walking</b><div class="row"><span>Coming to</span><span>${g ? ['the north', 'the east', 'the south', 'the west'][g.dir] + ' gate' : 'the castle'}</span></div>`
       + `<div class="row"><span>Your defense</span><span class="${d >= s * 1.3 ? 'good' : d < s ? 'bad' : ''}">${num(d, 0)}</span></div>`
-      + `<div class="row"><span>Their strength, about</span><span>${num(s, 0)}</span></div>`
+      + `<div class="row"><span>The horde's strength, about</span><span>${num(s, 0)}</span></div>`
       + `<div class="dim">Towers, barracks and a gatehouse (with its bridge raised) hold them. Click to look at the gate.</div>`;
   });
   threat.classList.add('threat');
+  // What is loose in the town: a chip that names it, and a click to look at the next of them.
+  const abroad = () => (game.monsters ?? []).filter((m) => m.phase !== 'slain');
+  const beasts = chip('beasts', icon('skull', 20), () => {
+    const list = abroad();
+    return `<b>Loose in the barony</b>${list.map((m) => `<div class="row"><span>${MONSTERS[m.kind].name}</span><span>${m.phase === 'coming' ? 'on its way' : m.phase === 'there' ? 'at work' : 'going home'}</span></div>`).join('')}`
+      + '<div class="dim">Watchtowers and barracks hunt them; the chapel lays ghosts and covens. Click to look at the next.</div>';
+  });
+  beasts.classList.add('threat');
+  let look = 0;
+  beasts.addEventListener('click', () => { const list = abroad(); if (!list.length) return; const m = list[look++ % list.length]; ctx.scene.focusOn(m.x, m.y, { zoom: 0.9 }); });
   threat.addEventListener('click', () => { const g = game.raidGate; if (g?.mid) ctx.scene.focusOn(g.mid[0], g.mid[1], { zoom: 1.2 }); });
   el.append(bar);
 
@@ -159,6 +170,9 @@ export function createHud(ctx) {
       const raidIn = game.disasters && Number.isFinite(game.nextRaid) ? game.nextRaid - game.week : Infinity;
       threat.hidden = !(raidIn > 0 && raidIn <= 3);
       if (!threat.hidden) set('threat', `${raidIn} wk`, { low: defenseOf(game, game.raidGate) < threatOf(game) });
+      const loose = abroad().length;
+      beasts.hidden = !loose;
+      if (loose) set('beasts', `${loose}`, { low: true });
       set('mood', `${Math.round(game.happiness)}`, { low: game.happiness < 38, warn: game.happiness < 52 });
       chips.mood.firstChild.innerHTML = icon(faceOf(game.happiness), 20);
       for (const [s, b] of speedButtons) b.classList.toggle('on', ctx.clock.speed === s.id);

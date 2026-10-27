@@ -7,8 +7,10 @@ import { createMusic } from './music.js';
 
 /**
  * The sound of the barony: the clink and knock of what the lord does, the
- * ambience of the place the camera is over (wind, water, birds, rain,
- * crickets, hammers), and the score. Nothing plays until the first click.
+ * ambience of the place the camera is over (wind, the moat, crows by day and
+ * owls by night, rain and thunder, crickets, hammers), what comes out of the
+ * dark (a howl, a wail, a cackle, a chant, the moaning of the dead), and the
+ * score. Nothing plays until the first click.
  */
 
 const DEFAULTS = Object.freeze({ music: 0.6, sfx: 0.8 });
@@ -53,6 +55,14 @@ export function createSound({ game, scene }) {
     arrive() { audio.jingle([72, 76], { step: 0.14, type: 'sine', gain: 0.1, length: 0.5 }); },
     gate() { audio.tone({ freq: 70, to: 55, length: 0.9, type: 'sawtooth', gain: 0.08 }); for (let k = 0; k < 8; k++) audio.burst({ at: k * 0.1, length: 0.04, type: 'bandpass', freq: 600, gain: 0.2 }); },
     dirge() { audio.jingle([50, 48, 45, 43], { step: 0.9, type: 'triangle', gain: 0.25, length: 2.5 }); },
+    crash() { audio.burst({ length: 0.9, type: 'lowpass', freq: 700, sweep: 120, gain: 0.55 }); for (let k = 0; k < 5; k++) knock(0.1 + k * 0.09, 0.3); audio.tone({ freq: 70, to: 40, length: 0.8, type: 'sine', gain: 0.4 }); },
+    howl() { audio.tone({ freq: 330, to: 520, length: 0.9, type: 'sine', gain: 0.12, attack: 0.25, vibrato: 4 }); audio.tone({ at: 0.85, freq: 520, to: 300, length: 1.6, type: 'sine', gain: 0.12, vibrato: 5 }); audio.tone({ at: 0.1, freq: 660, to: 1040, length: 0.9, type: 'sine', gain: 0.03, attack: 0.25 }); },
+    wail() { audio.tone({ freq: 880, to: 620, length: 2.4, type: 'sine', gain: 0.07, attack: 0.6, vibrato: 7 }); audio.tone({ at: 0.3, freq: 932, to: 660, length: 2.2, type: 'sine', gain: 0.04, attack: 0.6, vibrato: 6 }); },
+    cackle() { for (let k = 0; k < 6; k++) audio.tone({ at: k * 0.11, freq: 700 + 90 * (k % 2), to: 520, length: 0.09, type: 'square', gain: 0.04 }); },
+    chant() { for (const [at, n] of [[0, 45], [0.9, 46], [1.8, 45]]) { audio.tone({ at, freq: NOTE(n), length: 1.0, type: 'sawtooth', gain: 0.05, attack: 0.15, vibrato: 1 }); audio.tone({ at, freq: NOTE(n + 7), length: 1.0, type: 'sawtooth', gain: 0.03, attack: 0.15 }); } },
+    moan(g = 1) { const f = 110 + 50 * Math.random(); audio.tone({ freq: f, to: f * 0.8, length: 1.6, type: 'sawtooth', gain: 0.05 * g, attack: 0.3, vibrato: 2 }); audio.burst({ length: 1.2, type: 'bandpass', freq: 500, q: 3, gain: 0.04 * g }); },
+    thunder(g = 1) { audio.burst({ length: 2.4, type: 'lowpass', freq: 260, sweep: 60, gain: 0.5 * g }); audio.burst({ length: 0.3, type: 'highpass', freq: 900, gain: 0.15 * g }); },
+    hallows() { audio.jingle([69, 72, 75, 78, 81], { step: 0.16, type: 'triangle', gain: 0.14, length: 0.9 }); },
   };
 
   function wake() {
@@ -87,7 +97,10 @@ export function createSound({ game, scene }) {
   game.on('built', () => { if (ok('built', 0.4)) SFX.built(); });
   game.on('annexed', () => SFX.toll());
   game.on('annexStart', () => SFX.place());
-  game.on('fire', () => { if (ok('fire', 1)) SFX.alarm(); });
+  game.on('wreck', ({ cause }) => { if (ok('wreck', 1)) (cause === 'haunted' ? SFX.wail() : SFX.crash()); });
+  game.on('monster', ({ monster: m }) => { SFX.alarm(); setTimeout(() => ({ werewolf: SFX.howl, ghost: SFX.wail, goblins: SFX.cackle, cultists: SFX.chant })[m.kind]?.(), 1100); });
+  game.on('slain', () => { if (ok('slain', 1)) { bell(0, 69, 2, 0.14); bell(0.25, 76, 2.4, 0.12); } });
+  game.on('hallows', () => SFX.hallows());
   game.on('warning', () => { threat = 1; SFX.horn(); });
   game.on('raid', ({ outcome }) => { threat = 0; if (outcome === 'bought') return; SFX.clash(); setTimeout(() => (outcome === 'sacked' || outcome === 'pillaged' ? SFX.dirge() : SFX.fanfare()), 900); });
   game.on('harvest', () => SFX.harvest());
@@ -117,7 +130,7 @@ export function createSound({ game, scene }) {
     env = { water: Math.min(1, water / 25), forest: Math.min(1, forest / 30), building: Math.min(1, building / 4), t: 0 };
   };
 
-  let birdT = 0, hammerT = 0;
+  let birdT = 0, hammerT = 0, moanT = 3, bolts = 0;
   const api = {
     audio,
     sfx(name) { const f = SFX[name]; if (f && audio.ctx && ok(`sfx:${name}`, name === 'road' ? 0.12 : 0.05)) f(); },
@@ -139,10 +152,25 @@ export function createSound({ game, scene }) {
       birdT -= dt;
       if (birdT <= 0) {
         birdT = 1.5 + hash2(Math.floor(performance.now()), 2, 7) * 4;
-        if (a.day > 0.5 && !a.rain && a.season < 3 && env.forest > 0.15 && near > 0.35) {
-          const f = 2300 + hash2(Math.floor(performance.now() / 7), 3, 9) * 2200;
-          for (let k = 0; k < 2 + Math.floor(hash2(Math.floor(performance.now() / 13), 5, 1) * 3); k++) audio.tone({ at: k * 0.11, freq: f, to: f * 1.25, length: 0.07, type: 'sine', gain: 0.05 * near, attack: 0.01 });
+        if (a.day > 0.5 && !a.rain && env.forest > 0.1 && near > 0.35) {
+          // A crow: a rasp or two, falling.
+          const f = 900 + hash2(Math.floor(performance.now() / 7), 3, 9) * 300;
+          for (let k = 0; k < 1 + Math.floor(hash2(Math.floor(performance.now() / 13), 5, 1) * 3); k++) {
+            audio.burst({ at: k * 0.32, length: 0.2, type: 'bandpass', freq: f, q: 5, gain: 0.07 * near, sweep: f * 0.7 });
+            audio.tone({ at: k * 0.32, freq: f * 0.5, to: f * 0.38, length: 0.18, type: 'sawtooth', gain: 0.012 * near });
+          }
+        } else if (a.night > 0.6 && env.forest > 0.1 && near > 0.35 && hash2(Math.floor(performance.now()), 4, 4) < 0.4) {
+          // An owl: hoo, hoo-hoo.
+          for (const [at, len] of [[0, 0.35], [0.6, 0.18], [0.85, 0.4]]) audio.tone({ at, freq: 390, to: 360, length: len, type: 'sine', gain: 0.06 * near, attack: 0.05 });
         }
+      }
+      if (a.bolts !== bolts) { bolts = a.bolts; setTimeout(() => SFX.thunder(near), 300 + Math.random() * 900); }
+      // The dead on the road moan, the nearer they are the more.
+      moanT -= dt;
+      if (moanT <= 0) {
+        moanT = 1.8 + Math.random() * 2.5;
+        const left = game.nextRaid - game.week;
+        if (threat > 0 && game.raidGate && left <= 3) SFX.moan((1.2 - left * 0.3) * near);
       }
       hammerT -= dt;
       if (hammerT <= 0) {

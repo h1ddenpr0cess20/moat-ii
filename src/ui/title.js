@@ -3,7 +3,7 @@ import { savedList } from './saves.js';
 
 /**
  * The title: over the land, the name, and the way in. A new realm is a seed
- * (the same seed is always the same land) and how hard the raiders come.
+ * (the same seed is always the same land) and how hard the dead come.
  */
 export function createTitle({ seed, difficulty, disasters, size, sizes, canContinue, saves, onBegin, onContinue, onNew, onLoad }) {
   const seedInput = h('input', { type: 'text', value: seed, maxlength: 24, 'aria-label': 'Seed', spellcheck: 'false' });
@@ -23,16 +23,16 @@ export function createTitle({ seed, difficulty, disasters, size, sizes, canConti
   };
   const loadBtn = h('button.btn', { onclick: () => { shelf.hidden = !shelf.hidden; } }, 'Load a saved realm');
   const el = h('div.title-screen', {},
-    h('h1', {}, 'MOAT'),
-    h('div.tag-line', {}, 'A castle on an island, a hamlet at its gate. Raise a town of donut blocks, dig the moat wider, and claim the land.'),
+    h('h1', {}, 'MOAT II', h('small', {}, 'BLOOD MOAT')),
+    h('div.tag-line', {}, 'You are the vampire lord of a black castle in a moat of blood. Raise a town of donut blocks and pumpkin patches, dig the moat wider, and keep your people safe from the dead.'),
     h('div.panel.title-card', {},
       canContinue ? h('button.btn.gold', { onclick: onContinue }, 'Continue your realm') : null,
       h('button.btn' + (canContinue ? '' : '.gold'), { onclick: begin }, canContinue ? 'A new realm' : 'Begin'),
       loadBtn, shelf,
       h('label', {}, 'Land (seed)', h('span', {}, seedInput, h('button.btn.small', { title: 'A different land', onclick: dice }, '⟲'))),
       h('label', {}, 'Map size', sizeSeg), note,
-      h('label', {}, 'Raiders', seg),
-      h('label', {}, 'Disasters (fires, plague, raids)', disastersBox)));
+      h('label', {}, 'The dead', seg),
+      h('label', {}, 'Monsters (hordes, ghosts, werewolves, goblins, cultists)', disastersBox)));
   drawShelf();
   return { el, remove() { el.remove(); } };
 }

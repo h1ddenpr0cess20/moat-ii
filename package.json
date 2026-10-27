@@ -1,7 +1,7 @@
 {
-  "name": "moat",
+  "name": "moat-ii",
   "version": "0.1.0",
-  "description": "A medieval town builder and grand strategy map game: rule from the castle, build the town, and widen the moat. Built on the Madness Engine.",
+  "description": "Moat II: Blood Moat. A Halloween town builder: rule as the vampire lord of a black castle in a moat of blood, grow corn and pumpkins, widen the moat, and hold off the hordes of the dead. Built on the Madness Engine.",
   "type": "module",
   "private": true,
   "engines": {

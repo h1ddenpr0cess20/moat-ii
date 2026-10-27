@@ -20,28 +20,39 @@ import { freeTree } from './dispose.js';
 export const YAW = [Math.PI, Math.PI / 2, 0, -Math.PI / 2];
 
 /**
- * The darkness the realm is built in: what each kind of building's materials are multiplied by. The castle is
- * black stone and bruise-colored slate with its windows burning red; the walls and towers of the defense are
- * nearly as grim; the town is only weathered and sooty, and its windows glow the orange of a carved pumpkin.
+ * The look of the realm's buildings, as Gravemoor has it (the engine's horror
+ * town, h1ddenpr0cess20/rpg-test-world): every model's colors drained and
+ * cooled by one of a few tints, so a street reads as one grim place and not a
+ * painted toy, with a little difference house to house. The castle is the
+ * darkest of them, its windows burning red; the lit windows of the town are
+ * left warm (and flicker, see atmosphere.js), the only warm thing in it.
  */
-const GLOOM = {
-  castle: { base: [0.36, 0.33, 0.4], glow: [1, 0.16, 0.1], flame: [1, 0.45, 0.35], cloth: [0.75, 0.12, 0.16], metal: [0.6, 0.55, 0.6] },
-  defense: { base: [0.55, 0.52, 0.58], glow: [1, 0.3, 0.16], cloth: [0.75, 0.16, 0.2] },
-  town: { base: [0.8, 0.76, 0.8], glow: [1, 0.62, 0.32] },
+export const TINTS = {
+  cold: [0.5, 0.58, 0.6],
+  green: [0.46, 0.58, 0.52],
+  grey: [0.55, 0.57, 0.6],
+  warm: [0.62, 0.55, 0.5],
+  dark: [0.38, 0.44, 0.48],
+  bruise: [0.52, 0.48, 0.6],
 };
-const DEFENSE = new Set(['gatehouse', 'watchtower', 'barracks', 'cathedral', 'chapel']);
+const HOMELY = [TINTS.warm, TINTS.cold, TINTS.grey, TINTS.green, TINTS.bruise, TINTS.warm];
+const GRIM = { castle: TINTS.dark, gatehouse: TINTS.dark, watchtower: TINTS.cold, barracks: TINTS.dark, chapel: TINTS.grey, cathedral: TINTS.grey, graveyard: [0.8, 0.85, 0.85], healer: TINTS.green, smithy: TINTS.dark, tavern: TINTS.warm };
+/** What each material of a building is multiplied by: its tint, but the windows and fires kept as they burn. */
+const tintsOf = (type, id) => {
+  const base = GRIM[type] ?? HOMELY[(id * 7) % HOMELY.length];
+  return type === 'castle' ? { base, glow: [1, 0.2, 0.12], flame: [1, 0.5, 0.4] } : { base, glow: null, flame: null };
+};
+
+/** Stamps a model into a batch, each material tinted as its building is. */
+export function stampGloomy(batch, type, parts, x, y, z, yaw, id = 0) {
+  const t = tintsOf(type, id);
+  for (const [name, part] of Object.entries(parts)) batch.acc(name).stamp(part, x, y, z, yaw, 1, name in t ? t[name] : t.base);
+}
 
 /** Carved pumpkins for the doorsteps, a few kinds, made once. */
 const LANTERNS = [0, 1, 2, 3].map((v) => doorLantern(v, true));
 /** Who puts a lantern out: the people's own houses, shops and crofts, and the tavern. */
 const lanternFor = (type) => Boolean(BUILDINGS[type]?.auto) || type === 'tavern';
-const gloomOf = (type) => GLOOM[type === 'castle' ? 'castle' : DEFENSE.has(type) ? 'defense' : 'town'];
-
-/** Stamps a model into a batch, each material darkened as its building's kind is. */
-export function stampGloomy(batch, type, parts, x, y, z, yaw) {
-  const g = gloomOf(type);
-  for (const [name, part] of Object.entries(parts)) batch.acc(name).stamp(part, x, y, z, yaw, 1, g[name] ?? (name === 'glass' ? null : g.base));
-}
 
 export function createBuildings(GFX, world, materials, scene) {
   const { mat } = materials;
@@ -89,7 +100,7 @@ export function createBuildings(GFX, world, materials, scene) {
     const mx = b.x + b.w / 2, mz = b.y + b.d / 2;
     const t = modelFor(b.type, { level: b.level, variant: b.variant, building: true, progress: b.progress });
     const batch = new Batch();
-    stampGloomy(batch, b.type, t.parts, mx, heightAt(world, mx, mz), mz, YAW[b.front] ?? 0);
+    stampGloomy(batch, b.type, t.parts, mx, heightAt(world, mx, mz), mz, YAW[b.front] ?? 0, b.id);
     const g = new GFX.Group();
     g.name = `buildings site ${b.id}`;
     meshesFor(batch, g);
@@ -111,7 +122,7 @@ export function createBuildings(GFX, world, materials, scene) {
       const t = modelFor(b.type, { level: b.level, variant: b.variant, building: false, progress: b.progress });
       const baseY = heightAt(world, mx, mz);
       const yaw = YAW[b.front] ?? 0;
-      stampGloomy(batch, b.type, t.parts, mx, baseY, mz, yaw);
+      stampGloomy(batch, b.type, t.parts, mx, baseY, mz, yaw, b.id);
       const sy = Math.sin(yaw), cs = Math.cos(yaw);
       const at = (p) => [mx + p[0] * cs + p[2] * sy, baseY + p[1], mz - p[0] * sy + p[2] * cs];
       // A lantern on the step, at one front corner or the other, at most doors.
@@ -131,7 +142,7 @@ export function createBuildings(GFX, world, materials, scene) {
         pivot.position.set(...a.pivot);
         holder.add(pivot);
         const sub = new Batch();
-        stampGloomy(sub, b.type, a.parts, 0, 0, 0, 0);
+        stampGloomy(sub, b.type, a.parts, 0, 0, 0, 0, b.id);
         meshesFor(sub, pivot);
         g.add(holder);
         cell.anims.push({ pivot, rate: a.rate, kind: a.kind, phase: (b.id * 1.37) % 6.28 });

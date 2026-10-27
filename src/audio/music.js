@@ -3,19 +3,21 @@ import { room } from 'madness-engine/music/theory';
 import { hash2 } from '../rng.js';
 
 /**
- * The score: a lute, a recorder, a low drone and a frame drum, made on the
- * spot, wandering through the modes of the year (D dorian in spring, G
- * mixolydian in summer, A aeolian in autumn, a slow D phrygian in winter) in
- * a lilting six-eight. Phrase follows phrase without a break (each opens on
- * a bar of the lute alone, so it breathes without going quiet); the drum
- * comes in when the town is busy or the raiders are near.
+ * The score: a lute plucked like a harpsichord in a cold hall, a chapel
+ * organ (or now and then a recorder) over it, a low drone and a frame drum,
+ * made on the spot, wandering through the dark modes of the year (D aeolian
+ * in spring, A harmonic minor in summer, E phrygian in autumn, a slow D
+ * locrian in winter) in a slow six-eight. Phrase follows phrase without a
+ * break (each opens on a bar of the lute alone, so it breathes without going
+ * quiet); the drum comes in, like a heartbeat, when the town is busy or the
+ * dead are near.
  */
 
 const MODES = [
-  { root: 62, scale: [0, 2, 3, 5, 7, 9, 10], name: 'dorian' },
-  { root: 55, scale: [0, 2, 4, 5, 7, 9, 10], name: 'mixolydian' },
-  { root: 57, scale: [0, 2, 3, 5, 7, 8, 10], name: 'aeolian' },
-  { root: 50, scale: [0, 1, 3, 5, 7, 8, 10], name: 'phrygian' },
+  { root: 62, scale: [0, 2, 3, 5, 7, 8, 10], name: 'aeolian' },
+  { root: 57, scale: [0, 2, 3, 5, 7, 8, 11], name: 'harmonic minor' },
+  { root: 52, scale: [0, 1, 3, 5, 7, 8, 10], name: 'phrygian' },
+  { root: 50, scale: [0, 1, 3, 5, 6, 8, 10], name: 'locrian' },
 ];
 
 /** Progressions as scale degrees (0 is the tonic chord): four bars each. */
@@ -24,7 +26,7 @@ const PROGRESSIONS = [
 ];
 
 /** The eighth note, in seconds, for each season. */
-const EIGHTH = [0.25, 0.23, 0.28, 0.34];
+const EIGHTH = [0.3, 0.28, 0.33, 0.4];
 
 /** Which eighths of the bar the arpeggio plucks, as chord tones. */
 const ARPS = [[0, 2, 1, 2, 1, 2], [0, 1, 2, 1, 2, 1], [0, 2, 1, 2, 0, 1], [0, 1, 2, 3, 2, 1]];
@@ -53,6 +55,11 @@ export function createMusic(audio, { getState }) {
     audio.tone({ at, freq: f * 2, length: len * 0.7, type: 'sine', gain: gain * 0.18, attack: 0.1, vibrato: 3, out: bus });
     audio.burst({ at, length: len * 0.5, type: 'bandpass', freq: f * 2.5, gain: gain * 0.07, q: 4, out: bus });
   };
+  /** A chapel organ: a stopped pipe and its octave and twelfth, swelling in and dying slowly in the stone. */
+  const organ = (at, midi, len, gain = 0.07) => {
+    const f = NOTE(midi);
+    for (const [m, g] of [[1, 1], [2, 0.5], [3, 0.22], [0.5, 0.35]]) audio.tone({ at, freq: f * m, length: len, type: 'sine', gain: gain * g, attack: 0.12, out: bus });
+  };
   const drum = (at, soft = 1) => {
     audio.tone({ at, freq: 130, to: 58, length: 0.22, type: 'sine', gain: 0.32 * soft, out: bus });
     audio.burst({ at, length: 0.12, type: 'lowpass', freq: 380, gain: 0.3 * soft, out: bus });
@@ -66,7 +73,7 @@ export function createMusic(audio, { getState }) {
     const prog = PROGRESSIONS[Math.floor(hash2(seed, season, 3) * PROGRESSIONS.length)];
     phrase = {
       mode, prog, arp: ARPS[Math.floor(hash2(seed, 5, 1) * ARPS.length)], bar: 0, e: EIGHTH[season],
-      lead: hash2(seed, 9, 2) < (season === 1 || season === 0 ? 0.7 : 0.45) ? 'flute' : 'lute',
+      lead: hash2(seed, 9, 2) < 0.5 ? 'organ' : hash2(seed, 9, 3) < 0.4 ? 'flute' : 'lute',
       drum: state.busy || state.threat,
     };
     melodyAt = 5 + Math.floor(hash2(seed, 4, 4) * 5);
@@ -91,13 +98,15 @@ export function createMusic(audio, { getState }) {
         const len = ((rhythm[n + 1] ?? 6) - slot) * e;
         melodyAt = Math.max(2, Math.min(11, melodyAt + Math.floor(hash2(seed, phrase.bar * 7 + n, 8) * 5) - 2));
         const midi = degree(mode, melodyAt, 1);
-        if (phrase.lead === 'flute') flute(rel(t0 + slot * e), midi, len * 1.15);
+        if (phrase.lead === 'organ') organ(rel(t0 + slot * e), midi - 12, len * 1.3);
+        else if (phrase.lead === 'flute') flute(rel(t0 + slot * e), midi, len * 1.15);
         else pluck(rel(t0 + slot * e), midi + 12, 0.22, Math.max(0.6, len * 1.6));
       }
     }
     if (phrase.drum) {
-      drum(rel(t0), 1);
-      tap(rel(t0 + 2 * e), 0.8); drum(rel(t0 + 3 * e), 0.7); tap(rel(t0 + 5 * e), 0.6);
+      // A heartbeat: lub-dub, and a rest.
+      drum(rel(t0), 1); drum(rel(t0 + 0.6 * e), 0.6);
+      drum(rel(t0 + 3 * e), 0.8); drum(rel(t0 + 3.6 * e), 0.5); tap(rel(t0 + 5 * e), 0.4);
     }
     phrase.bar++;
     return 6 * e;
@@ -126,9 +135,9 @@ export function createMusic(audio, { getState }) {
       bus = ctx.createGain();
       bus.gain.value = 1;
       wet = ctx.createGain();
-      wet.gain.value = 0.34;
+      wet.gain.value = 0.42;
       const verb = ctx.createConvolver();
-      verb.buffer = room(ctx, 2.4, 2.2);
+      verb.buffer = room(ctx, 3.6, 2.6);
       bus.connect(audio.music);
       bus.connect(verb).connect(wet).connect(audio.music);
       drone = audio.loop({ source: 'sawtooth', freq: NOTE(MODES[1].root - 24), filters: [{ type: 'lowpass', freq: 220, q: 0.6 }], out: audio.music });

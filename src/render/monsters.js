@@ -126,7 +126,7 @@ export function createMonsters({ GFX, scene, game, world, atmosphere }) {
 
   // ------------------------------------------------------------ what the simulation sent out
 
-  const CLIP_THERE = { ghost: 'idle', vampire: 'attack', werewolf: 'attack', goblins: 'attack' };
+  const CLIP_THERE = { ghost: 'idle', cultists: 'cast', werewolf: 'attack', goblins: 'attack' };
 
   const drawMonsters = (frac) => {
     for (const m of game.monsters ?? []) {
@@ -237,8 +237,27 @@ export function createMonsters({ GFX, scene, game, world, atmosphere }) {
 
   const castleTop = () => heightAt(world, CENTER, CENTER) + 1.4 + 0.5 * game.castleLevel;
 
+  /**
+   * The lord: the Count, who sleeps through the day and walks out by night onto the bridge of his castle, slowly,
+   * to stand at the end of it over the moat and look at his town, and back to the gate.
+   */
+  const drawLord = (night) => {
+    if (night < 0.25) return;
+    const z0 = CENTER + 3.1, z1 = CENTER + 5.4;
+    const deck = (heightAt(world, CENTER, CENTER + 2.9) + heightAt(world, CENTER, CENTER + 5.7)) / 2 + 0.07;
+    const period = 24, u = (time % period) / period;
+    // Out to the end, a long look at the town, back to the gate, a look back at the keep.
+    const f = u < 0.3 ? u / 0.3 : u < 0.55 ? 1 : u < 0.85 ? 1 - (u - 0.55) / 0.3 : 0;
+    const going = u < 0.3 ? 1 : u >= 0.55 && u < 0.85 ? -1 : 0;
+    const x = CENTER + 0.25, z = z0 + (z1 - z0) * f;
+    const yaw = going < 0 || (!going && u >= 0.85) ? Math.PI : 0;
+    const ground = Math.max(heightAt(world, x, z), WATER_LEVEL - 0.25);
+    place('lord', 'count', x, z, { yaw, clip: going ? 'walk' : 'idle', lift: deck - ground });
+  };
+
   const drawAmbient = () => {
     const night = atmosphere.state.night ?? 0;
+    drawLord(night);
     // Bats round the castle's towers after dusk.
     if (night > 0.3) {
       for (let i = 0; i < 7; i++) {

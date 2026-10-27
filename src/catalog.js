@@ -140,7 +140,7 @@ export const RANKS = Object.freeze([
   { name: 'Viscount', short: 'Viscounty', need: { pop: 60, wards: 2 } },
   { name: 'Count', short: 'County', need: { pop: 160, wards: 4, building: 'chapel' } },
   { name: 'Marquess', short: 'March', need: { pop: 340, wards: 8, castle: 3 } },
-  { name: 'Duke', short: 'Duchy', need: { pop: 600, wards: 12, building: 'cathedral' } },
+  { name: 'Duke of the Night', short: 'Duchy', need: { pop: 600, wards: 12, building: 'cathedral' } },
 ]);
 
 /** Roads, and what they cost a tile. */

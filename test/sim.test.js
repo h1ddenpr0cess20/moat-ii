@@ -104,17 +104,64 @@ test('hands wanting work raise workshops and smallholdings where they are zoned,
   assert.ok(croft.kinds.includes('croft'), `a croft went up: ${croft.kinds.join(', ')}`);
 });
 
-test('fires are rare: a town of a hundred buildings loses only a few in a decade', async () => {
-  const { fires } = await import('../src/sim/events.js');
-  const { BUILDINGS } = await import('../src/catalog.js');
+test('monsters come out of the woods by the streets, and the watch puts them down before long', async () => {
+  const { MONSTERS, findApproach, huntChance, monsters, spawnMonster } = await import('../src/sim/monsters.js');
+  const { wreck } = await import('../src/sim/events.js');
   const game = startGame({ seed: 'moat' });
-  // A hundred cottages, set down by fiat where nothing else is: the fire roll only looks at the buildings.
-  for (let k = 0; k < 100; k++) game.world.buildings.set(1000 + k, { id: 1000 + k, type: 'cottage', x: 10 + (k % 10) * 3, y: 10 + Math.floor(k / 10) * 3, w: 2, d: 2, state: 'ready', level: 1 });
-  let burned = 0;
-  game.on('fire', () => burned++);
-  for (let w = 0; w < 480; w++) { game.week = w; fires(game); }
-  assert.ok(BUILDINGS.cottage);
-  assert.ok(burned <= 8, `${burned} burned in ten years`);
+  const bot = createBot(game);
+  for (let w = 0; w < 60; w++) { bot.think(); step(game); }
+  game.monsters = [];
+  game.nextMonster = Infinity;
+  const homes = [...game.world.buildings.values()].filter((b) => b.state === 'ready' && b.type === 'cottage');
+  assert.ok(homes.length, 'the bot built homes');
+  const path = findApproach(game, homes[0]);
+  assert.ok(path && path.length >= 6, 'there is a way to the house from out of town');
+  for (const [x, y] of path.slice(0, -1)) {
+    const i = Math.floor(y) * game.world.size + Math.floor(x);
+    assert.ok(!game.world.bld[i] && game.world.moat[i] !== 1, `the way does not go through a building or the moat, at ${x},${y}`);
+  }
+  for (const kind of Object.keys(MONSTERS)) {
+    const m = spawnMonster(game, kind, homes[0]);
+    if (!m) continue;
+    const p = huntChance(game, m);
+    assert.ok(p > 0 && p <= 0.85, `${kind}: a chance of being put down (${p})`);
+  }
+  // However many come, each is gone (put down, or gone home) in a season or so.
+  for (let w = 0; w < 30 && game.monsters.length; w++) { monsters(game, { wreck }); game.week++; }
+  assert.equal(game.monsters.length, 0, 'nothing is left loose');
+  for (const r of GOODS) assert.ok(game.stock[r] >= 0 && Number.isFinite(game.stock[r]), `${r} after the monsters`);
+});
+
+test('monsters are seldom: a few a year in a town that would have them, and none with them turned off', async () => {
+  const { monsters } = await import('../src/sim/monsters.js');
+  const { wreck } = await import('../src/sim/events.js');
+  for (const disasters of [true, false]) {
+    const game = startGame({ seed: 'moat', disasters });
+    const bot = createBot(game);
+    for (let w = 0; w < 40; w++) { bot.think(); step(game); }
+    let seen = 0;
+    game.on('monster', () => seen++);
+    game.pop.adults += 40;
+    for (let w = 0; w < 240; w++) { monsters(game, { wreck }); game.week++; }
+    if (disasters) assert.ok(seen >= 3 && seen <= 30, `${seen} monsters in five years`);
+    else assert.equal(seen, 0);
+  }
+});
+
+test('All Hallows’ Eve: lanterns from the pumpkins in store, or a frightened town', async () => {
+  const { hallows, HALLOWEEN } = await import('../src/sim/monsters.js');
+  for (const pumpkins of [500, 0]) {
+    const game = startGame({ seed: 'moat', disasters: false });
+    game.week = 48 + HALLOWEEN;
+    game.stock.produce = pumpkins;
+    game.shock = 10;
+    let lit = null;
+    game.on('hallows', (e) => { lit = e.lit; });
+    hallows(game);
+    assert.equal(lit, pumpkins > 0);
+    if (pumpkins) assert.ok(game.shock < 10 && game.stock.produce < 500, 'the town is gladder, and the pumpkins carved');
+    else assert.ok(game.shock > 10, 'the town is afraid');
+  }
 });
 
 test('food comes first only while the town needs it: full granaries let the farmhands go to other work', async () => {
@@ -127,7 +174,7 @@ test('food comes first only while the town needs it: full granaries let the farm
   assert.equal(priorityOf(game, 'farmstead'), 3, 'the lord’s own order still stands');
 });
 
-test('raiders make for the weakest gate, and a raised drawbridge turns them elsewhere', async () => {
+test('the dead make for the weakest gate, and a raised drawbridge turns them elsewhere', async () => {
   const { raids } = await import('../src/sim/events.js');
   const game = startGame({ seed: 'moat' });
   const gates = game.world.gates;
@@ -142,7 +189,7 @@ test('raiders make for the weakest gate, and a raised drawbridge turns them else
   }
 });
 
-test('the king’s collector takes a share of the year’s takings as well as his due', async () => {
+test('the Elder’s collector takes a share of the year’s takings as well as his due', async () => {
   const { tribute } = await import('../src/sim/events.js');
   const due = (takings) => {
     const game = startGame({ seed: 'moat' });

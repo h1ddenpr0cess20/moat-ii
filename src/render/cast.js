@@ -1,6 +1,7 @@
 import zombie from 'madness-engine/characters/zombie';
 import skeleton from 'madness-engine/characters/skeleton';
 import count from 'madness-engine/characters/count';
+import cultist from 'madness-engine/characters/cultist';
 import wraith from 'madness-engine/characters/wraith';
 import wolf from 'madness-engine/characters/wolf';
 import goblin from 'madness-engine/characters/goblin';
@@ -9,10 +10,12 @@ import crow from 'madness-engine/characters/crow';
 import blackcat from 'madness-engine/characters/blackcat';
 
 /**
- * The monsters, from the engine's cast: the zombie and the skeleton for the
- * hordes, the Count for the vampires, the wraith for the ghosts, the wolf for
- * the werewolves and the goblin for the goblins; and the bats, the crows and
- * the black cats that only go about their business.
+ * The lord and the monsters, from the engine's cast. The Count is the lord
+ * of the castle, the only vampire in the barony, walking his own courtyard by
+ * night. The zombie and the skeleton make the hordes; the wraith is the
+ * ghosts, the cultist the covens, the wolf the werewolves and the goblin the
+ * goblins; and the bats, the crows and the black cats only go about their
+ * business.
  *
  * The cast were sculpted for games where a figure is a tile or two high. Here
  * a tile is about four and a half meters: a man stands 0.4 of a tile, a door
@@ -28,8 +31,10 @@ const FIGURE = 0.3, SMALL = 0.45;
 export const CAST = Object.freeze({
   zombie: { def: zombie, detail: FIGURE, size: 0.4, measure: 'height', walk: 'walk', speed: 0.6 },
   skeleton: { def: skeleton, detail: FIGURE, size: 0.38, measure: 'height', walk: 'walk', speed: 0.8 },
-  // A vampire is tall, and stands taller in the cape.
-  count: { def: count, detail: FIGURE, size: 0.45, measure: 'height', walk: 'walk', speed: 1 },
+  // The lord is tall, and stands taller in the cape.
+  count: { def: count, detail: FIGURE, size: 0.45, measure: 'height', walk: 'walk', speed: 0.7 },
+  // A cultist is a man in a long robe and a hood (baked a little coarser: there are two of them, and the robe is plain).
+  cultist: { def: cultist, detail: 0.24, size: 0.4, measure: 'height', walk: 'walk', speed: 0.8 },
   // A ghost floats a hand's breadth off the ground.
   wraith: { def: wraith, detail: FIGURE, size: 0.42, measure: 'height', walk: 'walk', speed: 0.7, hover: 0.06 },
   // A werewolf is a wolf as big as a pony: nearly two meters nose to tail.

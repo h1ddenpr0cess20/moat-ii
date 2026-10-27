@@ -1,3 +1,4 @@
+import horror from 'madness-engine/moods/horror';
 import { hash2, smoothstep } from '../rng.js';
 import { WEEKS_PER_YEAR } from '../config.js';
 import { colorLeaves } from './materials.js';
@@ -24,20 +25,24 @@ export function rainAt(week, seed) {
 }
 
 /**
- * The film: the horror picture's stock (madness-engine/moods/horror), which makes everyone look a little dead,
- * let off a touch so the town can still be read; autumn warms to the orange of a lantern, winter goes to bone.
+ * The film and the light are the horror picture's (madness-engine/moods/horror), as Gravemoor shoots it
+ * (h1ddenpr0cess20/rpg-test-world): a stock that makes everyone look a little dead, under a pale green-grey sky
+ * light and a cold blue-white key, a little brighter than the picture's own so a town can be read. That is
+ * the day; the night is the same gone dark under the moon, with the windows burning. Autumn warms the grade a
+ * touch toward the lanterns; winter drains it to bone.
  */
-const FILMS = [
-  'saturate(0.8) hue-rotate(-8deg) contrast(1.1) brightness(1.02)',
-  'saturate(0.78) hue-rotate(-10deg) contrast(1.12) brightness(1.02)',
-  'saturate(0.95) sepia(0.18) hue-rotate(-6deg) contrast(1.12) brightness(1.0)',
-  'saturate(0.6) hue-rotate(-12deg) contrast(1.12) brightness(1.04)',
-];
-const VIGNETTE = 'radial-gradient(ellipse at center, transparent 50%, rgba(8,2,12,0.55) 100%)';
-const GRAIN = 0.05;
+const FILM = horror.film;
+const SEASON_FILM = ['', '', ' saturate(1.2) sepia(0.1)', ' saturate(0.85)'];
+const HORROR = {
+  sky: horror.light.hemisphere.sky, ground: horror.light.hemisphere.ground, key: horror.light.key.color,
+  moonSky: '#4a5868', moonGround: '#120e16', moon: '#b8c0ff', dusk: '#ff7a4a',
+};
+/** As Gravemoor lights its streets: a little more than the picture's own light. */
+const LIGHT = { hemi: 1.55, key: 1.5, nightHemi: 0.7, nightKey: 0.55 };
 
 export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water, domes, fx, seed }) {
   const { mat } = materials;
+  const C = Object.fromEntries(Object.entries(HORROR).map(([k, v]) => [k, new GFX.Color(v)]));
   let clock = 0.38;
   let mode = 'auto';
   let filmKey = '';
@@ -82,11 +87,13 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
       }
       flash = Math.max(0, flash - dt * 5);
       sunDir.set(...L.dir);
-      stage.key.color.setRGB(...L.key);
-      stage.key.intensity = L.keyIntensity * dim * (season === 3 ? 0.92 : 1) + flash * 2.6;
-      stage.hemi.color.setRGB(L.hemiSky[0], L.hemiSky[1], L.hemiSky[2]);
-      stage.hemi.groundColor.setRGB(...L.hemiGround);
-      stage.hemi.intensity = L.hemiIntensity * (0.9 + 0.2 * overcast) + flash * 1.4;
+      // The horror picture's light by day, the moon's by night, and the sky bleeding at dusk.
+      const day = L.day;
+      stage.key.color.lerpColors(C.moon, C.key, day).lerp(C.dusk, L.dusk * 0.55);
+      stage.key.intensity = (LIGHT.nightKey + (LIGHT.key - LIGHT.nightKey) * day) * dim * (season === 3 ? 0.92 : 1) + flash * 2.6;
+      stage.hemi.color.lerpColors(C.moonSky, C.sky, day);
+      stage.hemi.groundColor.lerpColors(C.moonGround, C.ground, day);
+      stage.hemi.intensity = (LIGHT.nightHemi + (LIGHT.hemi - LIGHT.nightHemi) * day) * (0.92 + 0.12 * overcast) + flash * 1.4;
       domes.set(L.dusk * 0.95, L.night);
       if (backdrop) {
         const g = 1 - 0.38 * overcast;
@@ -96,8 +103,11 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
       }
       // Windows light up as it gets dark, and early on dull days.
       const glow = Math.max(L.night, 0.55 * overcast * (1 - L.night) * 0.3, L.dusk * 0.8);
-      mat.glow.color.setScalar(Math.min(1, glow * 1.15));
-      mat.flame.color.setScalar(0.85 + 0.15 * Math.sin(flicker * 20));
+      // The windows burn a little brighter than white, and flicker, as Gravemoor's do.
+      const wf = 1.0 + 0.1 * Math.sin(flicker * 6.1) + 0.06 * Math.sin(flicker * 17.3);
+      const g = Math.min(1, glow * 1.15) * wf;
+      mat.glow.color.setRGB(1.5 * g, 1.35 * g, 1.0 * g);
+      mat.flame.color.setRGB(1.25 + 0.2 * Math.sin(flicker * 13), 1.05 + 0.15 * Math.sin(flicker * 9), 0.8);
       const snow = week < 4 ? 0 : snowAt(inYearF);
       // The year turns slowly: the leaves, the ground and the roofs need touching up a few times a second, not every frame.
       slow += dt;
@@ -112,10 +122,9 @@ export function createAtmosphere({ GFX, stage, sunDir, materials, terrain, water
       const key = `${season}:${Math.round(L.night * 4)}:${Math.round(overcast * 3)}`;
       if (key !== filmKey) {
         filmKey = key;
-        const base = FILMS[season];
-        const night = L.night > 0.5 ? ' brightness(1.18) saturate(0.85)' : '';
-        const gray = overcast > 0.5 ? ' saturate(0.8)' : '';
-        stage.film.set({ filter: base + night + gray, vignette: VIGNETTE, grain: GRAIN, ui: null });
+        const night = L.night > 0.5 ? ' brightness(1.15)' : ' brightness(1.06)';
+        const gray = overcast > 0.5 ? ' saturate(0.85)' : '';
+        stage.film.set({ filter: FILM.filter + SEASON_FILM[season] + night + gray, vignette: FILM.vignette, grain: FILM.grain, ui: null });
       }
       Object.assign(state, { night: L.night, day: L.day, rain: rain && season !== 3, snow, season, tod: clock, overcast, flash, bolts });
     },

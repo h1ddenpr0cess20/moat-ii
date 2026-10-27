@@ -9,8 +9,10 @@ import { headcount } from './people.js';
 
 /**
  * The things that walk the barony by night instead of the fires and fevers
- * of an honest county: ghosts that come for a home, vampires that come for
- * the people in it, werewolves for the flocks and goblins for the stores.
+ * of an honest county: ghosts that come for a home, cultists who bring the
+ * wasting to the people in it, werewolves for the flocks and goblins for the
+ * stores. (The only vampire in the barony is its lord, in the castle; these
+ * are his enemies, and his people's.)
  * Each comes out of the nearest wood (a ghost out of the graveyard, if there
  * is one) and goes by the streets to what it is after, a few tiles a week, so
  * the lord can see it coming; the watch, the priests and the healers each
@@ -29,11 +31,11 @@ export const MONSTERS = Object.freeze({
     warn: 'A ghost has drifted out of {from} and is making for a {target}. If the priests do not lay it, the family will flee.',
     slain: 'The priest read the ghost back into its grave. It will not walk again.',
   },
-  vampire: {
-    name: 'Vampire', cast: 'count', speed: 4, linger: 3, wards: { faith: 0.45, health: 0.25, security: 0.3 },
-    targets: (b) => BUILDINGS[b.type]?.cap && b.type !== 'castle' && b.level >= 2,
-    warn: 'A vampire has been seen coming out of {from}, a cape against the moon, toward a {target}. Bar the doors and string up the garlic.',
-    slain: 'The watch found the vampire asleep at dawn and put a stake through its heart.',
+  cultists: {
+    name: 'Cultists', cast: 'cultist', speed: 3, linger: 3, n: 2, wards: { faith: 0.45, health: 0.25, security: 0.35 },
+    targets: (b) => BUILDINGS[b.type]?.cap && b.type !== 'castle',
+    warn: 'Hooded figures out of {from}: a coven of cultists, making for a {target} with candles and a book. Where they pray, the wasting follows.',
+    slain: 'The priest and the watch broke up the coven at its prayers, and burned the book.',
   },
   werewolf: {
     name: 'Werewolf', cast: 'wolf', speed: 6, linger: 0, wards: { security: 0.7 },
@@ -43,7 +45,7 @@ export const MONSTERS = Object.freeze({
   },
   goblins: {
     name: 'Goblins', cast: 'goblin', speed: 4, linger: 0, n: 3, wards: { security: 0.75 },
-    targets: (b) => ['granary', 'storehouse', 'castle'].includes(b.type),
+    targets: (b) => ['granary', 'storehouse', 'market', 'merchant'].includes(b.type),
     warn: 'Goblins! A band of them is creeping out of {from} toward the {target}, sacks over their shoulders.',
     slain: 'The watch caught the goblins with their sacks empty and chased them back under their hill.',
   },
@@ -149,7 +151,7 @@ function pickMonster(game) {
   const { world } = game;
   const people = headcount(game);
   const all = [...world.buildings.values()].filter((b) => b.state === 'ready');
-  const kinds = MONSTER_KINDS.filter((k) => !(k === 'vampire' && people < 50) && all.some(MONSTERS[k].targets));
+  const kinds = MONSTER_KINDS.filter((k) => !(k === 'cultists' && people < 50) && all.some(MONSTERS[k].targets));
   if (!kinds.length) return null;
   const kind = kinds[Math.floor(game.rnd() * kinds.length)];
   const targets = all.filter(MONSTERS[kind].targets);
@@ -205,14 +207,13 @@ function deed(game, m, b, { wreck }) {
     wreck(game, b, 'haunted');
     game.shock += 3;
     game.note(`The ${BUILDINGS[b.type].name.toLowerCase()} is haunted. The family fled in the night and no one will live there now.`, 'bad', at);
-  } else if (m.kind === 'vampire') {
-    const dead = kill(game, game.difficulty === 'hard' ? 2 : 1);
-    game.shock += 3;
-    if (!game.plague && game.rnd() < 0.4) {
+  } else if (m.kind === 'cultists') {
+    game.shock += 2;
+    if (!game.plague && game.rnd() < 0.5) {
       game.plague = 6 + Math.floor(game.rnd() * 4);
       game.emit('plague', {});
-      game.note('Those the vampire bit and did not kill have the wasting: pale, cold, and sleeping all day. Keep to the healer and the chapel.', 'bad', at);
-    } else if (dead) game.note('Another found at dawn, white as linen, two marks on the throat. The vampire is still in the town.', 'bad', at);
+      game.note('The coven’s prayers have brought the wasting: the people are grey and cold, and sleep all day. Keep to the hedge witch and the chapel.', 'bad', at);
+    } else if (game.rnd() < 0.35 && kill(game, 1)) game.note('The cultists took someone from the street for their altar. The coven is still in the town.', 'bad', at);
   } else if (m.kind === 'werewolf') {
     const meat = game.stock.meat * 0.4, wool = game.stock.wool * 0.3;
     game.stock.meat -= meat; game.stock.wool -= wool;
@@ -221,10 +222,10 @@ function deed(game, m, b, { wreck }) {
     game.note(`The werewolf tore through the ${BUILDINGS[b.type].name.toLowerCase()}: ${Math.round(meat)} meat and ${Math.round(wool)} wool lost${dead ? ', and a farmhand with them' : ''}.`, 'bad', at);
   } else if (m.kind === 'goblins') {
     let what;
-    if (b.type === 'castle') {
-      const gold = Math.min(game.stock.gold * 0.1, 150);
+    if (b.type === 'market' || b.type === 'merchant') {
+      const gold = Math.min(game.stock.gold * 0.08, 120);
       game.stock.gold -= gold;
-      what = `${Math.round(gold)} gold from the castle`;
+      what = `${Math.round(gold)} gold from the strongbox of the ${BUILDINGS[b.type].name.toLowerCase()}`;
     } else {
       const list = b.type === 'granary' ? FOODS : GOODS.filter((g) => g !== 'gold' && !FOODS.includes(g));
       let n = 0;

@@ -1,7 +1,7 @@
 import { BUILDINGS, CASTLE_LEVELS, FARM_RADIUS, FARM_ZONES, FOODS, FOOD_PER_PERSON, FOOD_SPLIT, FUEL_PER_PERSON, GOODS, INDUSTRY_ZONES, RESOURCES, ZONE_ID } from '../catalog.js';
 import { GROUND, TILES, WEEKS_PER_YEAR } from '../config.js';
 import { clamp, lerp } from '../rng.js';
-import { qualityAt } from './blocks.js';
+import { blockAt, computeBlocks, qualityAt } from './blocks.js';
 import { calendar, coldness } from './calendar.js';
 import { weeksToHarvest } from './people.js';
 import { countNear, needsRoad } from '../world/buildings.js';
@@ -63,9 +63,15 @@ export function refresh(game, force = false) {
     if (a) sources.push([a.x, a.y]);
   }
   game.store = walkRoads(world, sources);
+  computeBlocks(game);
   for (const b of world.buildings.values()) {
     if (b.type === 'castle') { b.connected = true; b.haul = 0; continue; }
-    const a = accessOf(world, b.x, b.y, b.w, b.d);
+    let a = accessOf(world, b.x, b.y, b.w, b.d);
+    // The heart of a block touches no street of its own: the block's streets reach it, if they join the castle's roads.
+    if (!a) {
+      const block = blockAt(game, b.x + b.w / 2, b.y + b.d / 2);
+      if (block?.connected) a = accessOf(world, block.x0, block.y0, block.x1 - block.x0 + 1, block.y1 - block.y0 + 1);
+    }
     b.access = a;
     b.connected = Boolean(a) || !needsRoad(b);
     b.haul = a ? Math.max(0, game.store[idx(a.x, a.y)] >= 0 ? game.store[idx(a.x, a.y)] : a.d) : 99;

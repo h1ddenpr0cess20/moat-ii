@@ -38,7 +38,7 @@ export function createCamera({ GFX, stage, world, viewDef, dom }) {
     if (d.y > -0.01) return null;
     const f = (t) => o.y + d.y * t - surface(o.x + d.x * t, o.z + d.z * t);
     let t0 = 0, t1 = 0, hit = false;
-    for (let t = 0.2; t < 900; t += Math.max(0.3, t * 0.012)) {
+    for (let t = 0.2; t < camera.far; t += Math.max(0.3, t * 0.012)) {
       t1 = t;
       if (f(t) < 0) { hit = true; break; }
       t0 = t;
@@ -140,6 +140,11 @@ export function createCamera({ GFX, stage, world, viewDef, dom }) {
         view.yaw = view.aim.yaw;
         view.zoom = view.aim.zoom;
         if (grab) { grab.px = t.cx; grab.py = t.cy; }
+        else {
+          // The fingers began over no land (or the grab was let go): take hold as soon as they are over some.
+          const p = pick(t.cx, t.cy);
+          if (p) grab = { x0: p.x, z0: p.z, dx: 0, dz: 0, px: t.cx, py: t.cy };
+        }
       }
       return;
     }
@@ -236,8 +241,8 @@ export function createCamera({ GFX, stage, world, viewDef, dom }) {
       target.z += (goal.z - target.z) * k;
       target.y += (surface(target.x, target.z) - target.y) * (1 - Math.exp(-6 * dt));
       // Close in, the near plane comes in too; far out, it keeps the depth buffer honest.
-      camera.near = clamp(0.012 * api.distance, 0.12, 1.6);
-      camera.far = 900;
+      camera.near = clamp(0.012 * api.distance, 0.12, 3);
+      camera.far = Math.max(900, api.distance * 1.3 + SIZE * 1.6);
     },
     dispose() {
       dom.removeEventListener('pointerdown', onDown);

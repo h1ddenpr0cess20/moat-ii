@@ -7,7 +7,10 @@ import wolf from 'madness-engine/characters/wolf';
 import goblin from 'madness-engine/characters/goblin';
 import bat from 'madness-engine/characters/bat';
 import crow from 'madness-engine/characters/crow';
-import blackcat from 'madness-engine/characters/blackcat';
+import { CAT_DEFS } from 'madness-engine/characters/cat';
+
+/** The black cat is the engine's cat in its black coat; it is sized to the board below, by its length. */
+const blackcat = CAT_DEFS['cat-black'];
 
 /**
  * The lord and the monsters, from the engine's cast. The Count is the lord

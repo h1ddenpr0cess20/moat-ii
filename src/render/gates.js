@@ -1,6 +1,6 @@
 import { CASTLE_BRIDGE } from '../world/wards.js';
 import { heightAt } from '../world/world.js';
-import { CENTER, ROAD } from '../config.js';
+import { CENTER, GROUND, ROAD, WATER_LEVEL } from '../config.js';
 import { Batch, Mesher } from 'madness-engine/mesher';
 import { castsShadow } from './materials.js';
 import { PALETTE } from 'madness-engine/buildings/common';
@@ -106,7 +106,7 @@ export function createGates(GFX, world, materials, scene) {
   /** One bridge from a world point (the inner end) outward along (dx, dz). */
   const bridge = (sx, sz, dx, dz, len, { leaf = null, hinge = 0, width = 2 } = {}) => {
     const ex = sx + dx * len, ez = sz + dz * len;
-    const y = (heightAt(world, sx, sz) + heightAt(world, ex, ez)) / 2 + 0.07;
+    const y = Math.max((heightAt(world, sx, sz) + heightAt(world, ex, ez)) / 2 + 0.07, WATER_LEVEL + 0.2);
     const root = new GFX.Group();
     root.position.set(sx, y, sz);
     root.rotation.y = yawOut(dx, dz);
@@ -132,6 +132,7 @@ export function createGates(GFX, world, materials, scene) {
   const build = () => {
     clear();
     for (const g of world.gates) {
+      if (g.wet) continue; // all water on that border: no bridge to nowhere
       const [mx, my] = g.mid;
       // The inner end and the way outward.
       const out = [[0, -1], [1, 0], [0, 1], [-1, 0]][g.dir];
@@ -145,8 +146,10 @@ export function createGates(GFX, world, materials, scene) {
       if (it.pivot) it.pivot.rotation.z = it.angle;
       items.push(it);
     }
-    // The lord's own bridges over rivers and lakes: each straight run of span tiles, with a tile of bank at either end.
+    // The lord's own bridges over rivers and lakes: each straight run of span tiles, with a tile of bank at either end where there is one.
     const seen = new Set();
+    // Dry ground a deck can land on: not water, and not so low it is awash. Where there is none, the bridge ends with its span.
+    const bank = (x, y) => x >= 0 && y >= 0 && x < world.size && y < world.size && world.ground[y * world.size + x] !== GROUND.WATER && heightAt(world, x + 0.5, y + 0.5) > WATER_LEVEL + 0.08;
     const span = (x, y) => x >= 0 && y >= 0 && x < world.size && y < world.size && world.road[y * world.size + x] === ROAD.SPAN;
     for (let y = 0; y < world.size; y++) {
       for (let x = 0; x < world.size; x++) {
@@ -154,7 +157,8 @@ export function createGates(GFX, world, materials, scene) {
         const horizontal = span(x + 1, y) || !span(x, y + 1);
         let n = 0;
         while (horizontal ? span(x + n, y) : span(x, y + n)) { seen.add((horizontal ? y : y + n) * world.size + (horizontal ? x + n : x)); n++; }
-        const it = horizontal ? bridge(x - 1, y + 0.5, 1, 0, n + 2, { width: 1.05 }) : bridge(x + 0.5, y - 1, 0, 1, n + 2, { width: 1.05 });
+        const a = (horizontal ? bank(x - 1, y) : bank(x, y - 1)) ? 1 : 0, b = (horizontal ? bank(x + n, y) : bank(x, y + n)) ? 1 : 0;
+        const it = horizontal ? bridge(x - a, y + 0.5, 1, 0, n + a + b, { width: 1.05 }) : bridge(x + 0.5, y - a, 0, 1, n + a + b, { width: 1.05 });
         items.push(it);
       }
     }

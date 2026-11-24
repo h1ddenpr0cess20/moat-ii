@@ -81,4 +81,4 @@ The world is regenerated from the seed; a save keeps runs of changed cells for e
 * Smoke, flames and rain splashes are instanced pools, a draw call for each kind.
 * Ground textures repaint only the tiles that changed. Buildings are batched in quarter-chunk cells, rebuilt only when their buildings change; sites under construction are their own small meshes.
 * The monsters are the engine's cast, baked in a worker at a third of their detail and scaled to their real size (`src/render/cast.js`). Each kind has up to three puppets a clip, posed a little out of step, and every figure on the map borrows one's skin: a horde of a dozen is three skins a frame.
-* The buildings are tinted as Gravemoor tints them: each a drained, cool tint (cold, green, grey, warm, dark, bruise), the castle darkest, its windows red.
+* The buildings are tinted as Gravemoor tints them: each a drained, cool tint (cold, green, gray, warm, dark, bruise), the castle darkest, its windows red.

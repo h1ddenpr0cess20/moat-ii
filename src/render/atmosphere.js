@@ -26,7 +26,7 @@ export function rainAt(week, seed) {
 
 /**
  * The film and the light are the horror picture's (madness-engine/moods/horror), as Gravemoor shoots it
- * (h1ddenpr0cess20/rpg-test-world): a stock that makes everyone look a little dead, under a pale green-grey sky
+ * (h1ddenpr0cess20/rpg-test-world): a stock that makes everyone look a little dead, under a pale green-gray sky
  * light and a cold blue-white key, a little brighter than the picture's own so a town can be read. That is
  * the day; the night is the same gone dark under the moon, with the windows burning. Autumn warms the grade a
  * touch toward the lanterns; winter drains it to bone.

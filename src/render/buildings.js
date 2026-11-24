@@ -30,13 +30,13 @@ export const YAW = [Math.PI, Math.PI / 2, 0, -Math.PI / 2];
 export const TINTS = {
   cold: [0.5, 0.58, 0.6],
   green: [0.46, 0.58, 0.52],
-  grey: [0.55, 0.57, 0.6],
+  gray: [0.55, 0.57, 0.6],
   warm: [0.62, 0.55, 0.5],
   dark: [0.38, 0.44, 0.48],
   bruise: [0.52, 0.48, 0.6],
 };
-const HOMELY = [TINTS.warm, TINTS.cold, TINTS.grey, TINTS.green, TINTS.bruise, TINTS.warm];
-const GRIM = { castle: TINTS.dark, gatehouse: TINTS.dark, watchtower: TINTS.cold, barracks: TINTS.dark, chapel: TINTS.grey, cathedral: TINTS.grey, graveyard: [0.8, 0.85, 0.85], healer: TINTS.green, smithy: TINTS.dark, tavern: TINTS.warm };
+const HOMELY = [TINTS.warm, TINTS.cold, TINTS.gray, TINTS.green, TINTS.bruise, TINTS.warm];
+const GRIM = { castle: TINTS.dark, gatehouse: TINTS.dark, watchtower: TINTS.cold, barracks: TINTS.dark, chapel: TINTS.gray, cathedral: TINTS.gray, graveyard: [0.8, 0.85, 0.85], healer: TINTS.green, smithy: TINTS.dark, tavern: TINTS.warm };
 /** What each material of a building is multiplied by: its tint, but the windows and fires kept as they burn. */
 const tintsOf = (type, id) => {
   const base = GRIM[type] ?? HOMELY[(id * 7) % HOMELY.length];

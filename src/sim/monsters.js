@@ -212,7 +212,7 @@ function deed(game, m, b, { wreck }) {
     if (!game.plague && game.rnd() < 0.5) {
       game.plague = 6 + Math.floor(game.rnd() * 4);
       game.emit('plague', {});
-      game.note('The coven’s prayers have brought the wasting: the people are grey and cold, and sleep all day. Keep to the hedge witch and the chapel.', 'bad', at);
+      game.note('The coven’s prayers have brought the wasting: the people are gray and cold, and sleep all day. Keep to the hedge witch and the chapel.', 'bad', at);
     } else if (game.rnd() < 0.35 && kill(game, 1)) game.note('The cultists took someone from the street for their altar. The coven is still in the town.', 'bad', at);
   } else if (m.kind === 'werewolf') {
     const meat = game.stock.meat * 0.4, wool = game.stock.wool * 0.3;
